@@ -43,10 +43,8 @@ const ProviderItem = GObject.registerClass(class ProviderItem extends PopupMenu.
         const header = new St.BoxLayout({x_expand: true, style_class: 'ai-usage-provider-header'});
         const nameLabel = new St.Label({text: provider.label || provider.id, x_expand: true, style_class: 'ai-usage-provider-name'});
         header.add_child(nameLabel);
-        if (provider.ok)
-            header.add_child(new St.Widget({style_class: 'ai-usage-status-dot', y_align: Clutter.ActorAlign.CENTER}));
-        else
-            header.add_child(new St.Label({text: provider.error || 'No disponible', style_class: 'ai-usage-status'}));
+        const dotClass = provider.ok ? 'ai-usage-status-dot' : 'ai-usage-status-dot-error';
+        header.add_child(new St.Widget({style_class: dotClass, y_align: Clutter.ActorAlign.CENTER}));
         box.add_child(header);
 
         // Quota windows with better spacing
@@ -54,9 +52,7 @@ const ProviderItem = GObject.registerClass(class ProviderItem extends PopupMenu.
         if (windows.length) {
             for (const window of windows)
                 box.add_child(new UsageMeter(window));
-        } else if (provider.ok || !provider.error) {
-            // The header status label above already shows provider.error when
-            // the provider is not ok — don't repeat the same text here.
+        } else {
             const emptyLabel = new St.Label({text: provider.error || 'Sin datos de cuota', style_class: 'ai-usage-status'});
             box.add_child(emptyLabel);
         }

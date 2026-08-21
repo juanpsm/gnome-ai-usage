@@ -85,18 +85,14 @@ var ProviderItem = GObject.registerClass(class ProviderItem extends PopupMenu.Po
         }
 
         header.add_child(new St.Label({text: provider.label || provider.id, x_expand: true, style_class: 'ai-usage-provider-name'}));
-        if (provider.ok)
-            header.add_child(new St.Widget({style_class: 'ai-usage-status-dot', y_align: Clutter.ActorAlign.CENTER}));
-        else
-            header.add_child(new St.Label({text: provider.error || 'No disponible', style_class: 'ai-usage-status'}));
+        var dotClass = provider.ok ? 'ai-usage-status-dot' : 'ai-usage-status-dot-error';
+        header.add_child(new St.Widget({style_class: dotClass, y_align: Clutter.ActorAlign.CENTER}));
         box.add_child(header);
 
         var windows = provider.quotaWindows || [];
         if (windows.length) {
             windows.forEach(function (window) { box.add_child(new UsageMeter(window)); });
-        } else if (provider.ok || !provider.error) {
-            // The header status label above already shows provider.error when
-            // the provider is not ok — don't repeat the same text here.
+        } else {
             box.add_child(new St.Label({text: provider.error || 'Sin datos de cuota', style_class: 'ai-usage-status'}));
         }
         this.add_child(box);
