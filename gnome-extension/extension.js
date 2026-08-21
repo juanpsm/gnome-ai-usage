@@ -10,7 +10,7 @@ import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 import {formatReset, meterClass, providerPercent} from './utils.js';
 
-const PROVIDERS = ['claude', 'openai', 'copilot', 'antigravity'];
+const PROVIDERS = ['claude', 'antigravity', 'openai', 'kiro', 'mistral', 'openrouter', 'grok', 'zai', 'copilot', 'deepseek', 'kimi'];
 
 const UsageMeter = GObject.registerClass(class UsageMeter extends St.Widget {
     _init(window) {
@@ -31,7 +31,7 @@ const ProviderItem = GObject.registerClass(class ProviderItem extends PopupMenu.
     _init(provider) {
         super._init({reactive: false, can_focus: false, style_class: 'ai-usage-provider'});
         const box = new St.BoxLayout({vertical: true, x_expand: true});
-        const header = new St.BoxLayout();
+        const header = new St.BoxLayout({x_expand: true});
         header.add_child(new St.Label({text: provider.label || provider.id, x_expand: true, style_class: 'ai-usage-provider-name'}));
         header.add_child(new St.Label({text: provider.ok ? 'Conectado' : (provider.error || 'No disponible'), style_class: 'ai-usage-status'}));
         box.add_child(header);
@@ -89,7 +89,24 @@ export default class AiUsageExtension extends Extension {
         }
         let proc;
         try {
-            proc = Gio.Subprocess.new([backend.get_path(), '--provider', enabled.join(',')], Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE);
+            const launcher = Gio.SubprocessLauncher.new(Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE);
+            
+            launcher.setenv('WIDGET_CLAUDE_ADMIN_KEY', this._settings.get_string('claude-admin-api-key'), true);
+            launcher.setenv('WIDGET_OPENAI_API_KEY', this._settings.get_string('openai-api-key'), true);
+            launcher.setenv('WIDGET_MISTRAL_API_KEY', this._settings.get_string('mistral-api-key'), true);
+            launcher.setenv('WIDGET_OPENROUTER_API_KEY', this._settings.get_string('openrouter-api-key'), true);
+            launcher.setenv('WIDGET_GROK_API_KEY', this._settings.get_string('grok-api-key'), true);
+            launcher.setenv('WIDGET_ZAI_TOKEN', this._settings.get_string('zai-token'), true);
+            launcher.setenv('WIDGET_GITHUB_TOKEN', this._settings.get_string('github-token'), true);
+            launcher.setenv('WIDGET_DEEPSEEK_API_KEY', this._settings.get_string('deepseek-api-key'), true);
+            launcher.setenv('WIDGET_MOONSHOT_API_KEY', this._settings.get_string('moonshot-api-key'), true);
+            launcher.setenv('WIDGET_COPILOT_QUOTA', String(this._settings.get_int('copilot-quota')), true);
+
+            const pythonPath = this._settings.get_string('python-path').trim();
+            if (pythonPath)
+                launcher.setenv('PYTHON3', pythonPath, true);
+
+            proc = launcher.spawnv([backend.get_path(), '--provider', enabled.join(',')]);
         } catch (error) {
             this._renderError(error.message);
             return;

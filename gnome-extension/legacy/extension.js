@@ -13,7 +13,7 @@ var ExtensionUtils = imports.misc.extensionUtils;
 var Me = ExtensionUtils.getCurrentExtension();
 var UsageUtils = Me.imports.utils;
 
-var PROVIDERS = ['claude', 'openai', 'copilot', 'antigravity'];
+var PROVIDERS = ['claude', 'antigravity', 'openai', 'kiro', 'mistral', 'openrouter', 'grok', 'zai', 'copilot', 'deepseek', 'kimi'];
 
 var METER_COLORS = {
     '': [0.384, 0.627, 0.918],
@@ -61,7 +61,7 @@ var ProviderItem = GObject.registerClass(class ProviderItem extends PopupMenu.Po
     _init(provider) {
         super._init({reactive: false, can_focus: false, style_class: 'ai-usage-provider'});
         var box = new St.BoxLayout({vertical: true, x_expand: true});
-        var header = new St.BoxLayout();
+        var header = new St.BoxLayout({x_expand: true});
         header.add_child(new St.Label({text: provider.label || provider.id, x_expand: true, style_class: 'ai-usage-provider-name'}));
         header.add_child(new St.Label({text: provider.ok ? 'Conectado' : (provider.error || 'No disponible'), style_class: 'ai-usage-status'}));
         box.add_child(header);
@@ -90,6 +90,12 @@ var AiUsageExtension = class {
             if (open && !this._providers.length)
                 this._refresh();
         }.bind(this));
+
+        this._settingsChangedId = this._settings.connect('changed::enabled-providers', this._refresh.bind(this));
+        this._indicatorModeChangedId = this._settings.connect('changed::indicator-mode', function () {
+            this._render(this._lastEnvelope);
+        }.bind(this));
+
         this._refreshId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, this._settings.get_uint('refresh-interval'), function () {
             this._refresh();
             return true;
@@ -102,6 +108,10 @@ var AiUsageExtension = class {
         if (this._refreshId)
             GLib.Source.remove(this._refreshId);
         this._refreshId = 0;
+        if (this._settingsChangedId)
+            this._settings.disconnect(this._settingsChangedId);
+        if (this._indicatorModeChangedId)
+            this._settings.disconnect(this._indicatorModeChangedId);
         if (this._indicator)
             this._indicator.destroy();
         this._indicator = null;
@@ -117,7 +127,24 @@ var AiUsageExtension = class {
 
         var proc;
         try {
-            proc = Gio.Subprocess.new([backend.get_path(), '--provider', enabled.join(',')], Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE);
+            var launcher = Gio.SubprocessLauncher.new(Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE);
+            
+            launcher.setenv('WIDGET_CLAUDE_ADMIN_KEY', this._settings.get_string('claude-admin-api-key'), true);
+            launcher.setenv('WIDGET_OPENAI_API_KEY', this._settings.get_string('openai-api-key'), true);
+            launcher.setenv('WIDGET_MISTRAL_API_KEY', this._settings.get_string('mistral-api-key'), true);
+            launcher.setenv('WIDGET_OPENROUTER_API_KEY', this._settings.get_string('openrouter-api-key'), true);
+            launcher.setenv('WIDGET_GROK_API_KEY', this._settings.get_string('grok-api-key'), true);
+            launcher.setenv('WIDGET_ZAI_TOKEN', this._settings.get_string('zai-token'), true);
+            launcher.setenv('WIDGET_GITHUB_TOKEN', this._settings.get_string('github-token'), true);
+            launcher.setenv('WIDGET_DEEPSEEK_API_KEY', this._settings.get_string('deepseek-api-key'), true);
+            launcher.setenv('WIDGET_MOONSHOT_API_KEY', this._settings.get_string('moonshot-api-key'), true);
+            launcher.setenv('WIDGET_COPILOT_QUOTA', String(this._settings.get_int('copilot-quota')), true);
+
+            var pythonPath = this._settings.get_string('python-path').trim();
+            if (pythonPath)
+                launcher.setenv('PYTHON3', pythonPath, true);
+
+            proc = launcher.spawnv([backend.get_path(), '--provider', enabled.join(',')]);
         } catch (error) {
             this._renderError(error.message);
             return;
@@ -140,6 +167,7 @@ var AiUsageExtension = class {
     _render(envelope) {
         if (!envelope)
             return;
+        this._lastEnvelope = envelope;
         this._providers = envelope.providers || [];
         var mode = this._settings.get_string('indicator-mode');
         var selected = mode === 'aggregate' ? null : this._providers.find(function (provider) { return provider.id === mode; });

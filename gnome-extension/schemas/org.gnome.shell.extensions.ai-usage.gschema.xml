@@ -5,13 +5,70 @@
       <summary>Refresh interval in seconds</summary>
     </key>
     <key name="enabled-providers" type="as">
-      <default>[ 'claude', 'openai', 'copilot', 'antigravity' ]</default>
+      <default>[ 'claude', 'antigravity', 'openai', 'kiro', 'mistral', 'openrouter', 'grok', 'zai', 'copilot', 'deepseek', 'kimi' ]</default>
       <summary>Providers shown in the popover</summary>
     </key>
     <key name="indicator-mode" type="s">
       <default>'aggregate'</default>
       <summary>Panel indicator mode</summary>
-      <choices><choice value="aggregate"/><choice value="claude"/><choice value="openai"/><choice value="copilot"/><choice value="antigravity"/></choices>
+      <choices>
+        <choice value="aggregate"/>
+        <choice value="claude"/>
+        <choice value="antigravity"/>
+        <choice value="openai"/>
+        <choice value="kiro"/>
+        <choice value="mistral"/>
+        <choice value="openrouter"/>
+        <choice value="grok"/>
+        <choice value="zai"/>
+        <choice value="copilot"/>
+        <choice value="deepseek"/>
+        <choice value="kimi"/>
+      </choices>
+    </key>
+    <key name="claude-admin-api-key" type="s">
+      <default>''</default>
+      <summary>Claude Admin API Key</summary>
+    </key>
+    <key name="openai-api-key" type="s">
+      <default>''</default>
+      <summary>OpenAI API Key</summary>
+    </key>
+    <key name="mistral-api-key" type="s">
+      <default>''</default>
+      <summary>Mistral API Key</summary>
+    </key>
+    <key name="openrouter-api-key" type="s">
+      <default>''</default>
+      <summary>OpenRouter API Key</summary>
+    </key>
+    <key name="grok-api-key" type="s">
+      <default>''</default>
+      <summary>Grok API Key</summary>
+    </key>
+    <key name="zai-token" type="s">
+      <default>''</default>
+      <summary>Z.AI Token</summary>
+    </key>
+    <key name="github-token" type="s">
+      <default>''</default>
+      <summary>GitHub Token for Copilot</summary>
+    </key>
+    <key name="deepseek-api-key" type="s">
+      <default>''</default>
+      <summary>DeepSeek API Key</summary>
+    </key>
+    <key name="moonshot-api-key" type="s">
+      <default>''</default>
+      <summary>Moonshot / Kimi API Key</summary>
+    </key>
+    <key name="copilot-quota" type="i">
+      <default>300</default>
+      <summary>GitHub Copilot personal quota</summary>
+    </key>
+    <key name="python-path" type="s">
+      <default>''</default>
+      <summary>Custom Python interpreter path</summary>
     </key>
   </schema>
 </schemalist>
