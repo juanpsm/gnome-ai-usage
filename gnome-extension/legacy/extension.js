@@ -91,7 +91,9 @@ var ProviderItem = GObject.registerClass(class ProviderItem extends PopupMenu.Po
         var windows = provider.quotaWindows || [];
         if (windows.length) {
             windows.forEach(function (window) { box.add_child(new UsageMeter(window)); });
-        } else {
+        } else if (provider.ok || !provider.error) {
+            // The header status label above already shows provider.error when
+            // the provider is not ok — don't repeat the same text here.
             box.add_child(new St.Label({text: provider.error || 'Sin datos de cuota', style_class: 'ai-usage-status'}));
         }
         this.add_child(box);

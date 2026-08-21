@@ -55,9 +55,16 @@
     width: 0;
 }
 
-/* ─ Bottom toolbar (refresh + settings) ─ */
+/* ─ Bottom toolbar (refresh + settings) — override the theme's default
+   popup-menu-item padding (~9px vertical) too, or the row ends up much
+   taller than the icon buttons it holds. ─ */
+.ai-usage-toolbar-item {
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+
 .ai-usage-toolbar {
-    padding: 6px 12px;
+    padding: 4px 12px;
 }
 
 .ai-usage-icon-button {

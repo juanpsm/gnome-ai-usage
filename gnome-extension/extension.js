@@ -54,7 +54,9 @@ const ProviderItem = GObject.registerClass(class ProviderItem extends PopupMenu.
         if (windows.length) {
             for (const window of windows)
                 box.add_child(new UsageMeter(window));
-        } else {
+        } else if (provider.ok || !provider.error) {
+            // The header status label above already shows provider.error when
+            // the provider is not ok — don't repeat the same text here.
             const emptyLabel = new St.Label({text: provider.error || 'Sin datos de cuota', style_class: 'ai-usage-status'});
             box.add_child(emptyLabel);
         }

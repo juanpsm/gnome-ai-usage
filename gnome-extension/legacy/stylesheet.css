@@ -1,4 +1,4 @@
-.ai-usage-menu-item { padding: 8px 12px; }
+.ai-usage-menu-item { padding: 8px 0; }
 .ai-usage-provider { min-width: 330px; }
 .ai-usage-provider-name { font-weight: bold; }
 .ai-usage-status, .ai-usage-reset { color: #9a9996; }
@@ -14,7 +14,8 @@
 .ai-usage-toolbar-item > .popup-menu-ornament {
     width: 0;
 }
-.ai-usage-toolbar { padding: 6px 12px; }
+.ai-usage-toolbar-item { padding-top: 2px; padding-bottom: 2px; }
+.ai-usage-toolbar { padding: 4px 12px; }
 .ai-usage-icon-button {
     width: 28px;
     height: 28px;
