@@ -48,7 +48,7 @@ A KDE Plasma 6 panel widget for tracking AI API quota usage across multiple serv
 
 ## GNOME Shell extension
 
-This fork also includes a GNOME Shell extension in [`gnome-extension/`](gnome-extension/). It reuses the Python backend and currently shows Claude, OpenAI/Codex, GitHub Copilot, and Gemini/Antigravity in a panel indicator and popover. Providers with multiple quota windows, such as Claude, show one row per window with the percentage used, time remaining, and exact reset date.
+This fork also includes a GNOME Shell extension in [`gnome-extension/`](gnome-extension/). It reuses the Python backend and currently shows Claude, OpenAI/Codex, GitHub Copilot, and Gemini/Antigravity in a panel indicator and popover. Providers with multiple quota windows, such as Claude, show one row per window with the percentage used, time remaining, and exact reset date. The installer selects the legacy implementation for GNOME 42–44 and the ES module implementation for GNOME 45+.
 
 Requirements: GNOME Shell 46+, GJS, GLib schemas, and Python 3.8+. Install it from this checkout with:
 

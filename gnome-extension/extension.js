@@ -89,15 +89,18 @@ export default class AiUsageExtension extends Extension {
         }
         let proc;
         try {
-            proc = new Gio.Subprocess({argv: [backend.get_path(), '--provider', enabled.join(',')], flags: Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE});
+            proc = Gio.Subprocess.new([backend.get_path(), '--provider', enabled.join(',')], Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE);
         } catch (error) {
             this._renderError(error.message);
             return;
         }
         proc.communicate_utf8_async(null, null, (_proc, result) => {
             try {
-                const [, stdout] = proc.communicate_utf8_finish(result);
-                this._render(JSON.parse(stdout));
+                const [, stdout, stderr] = proc.communicate_utf8_finish(result);
+                const envelope = stdout ? JSON.parse(stdout) : null;
+                if (!envelope)
+                    throw new Error(stderr ? stderr.trim() : 'respuesta vacía del backend');
+                this._render(envelope);
             } catch (error) {
                 this._renderError(error.message);
             }
