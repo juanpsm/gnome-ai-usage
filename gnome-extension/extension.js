@@ -15,15 +15,22 @@ const PROVIDERS = ['claude', 'antigravity', 'openai', 'kiro', 'mistral', 'openro
 const UsageMeter = GObject.registerClass(class UsageMeter extends St.Widget {
     _init(window) {
         super._init({layout_manager: new Clutter.BoxLayout({orientation: Clutter.Orientation.VERTICAL})});
-        const header = new St.BoxLayout({style_class: 'ai-usage-menu-item'});
+        
+        // Header: Label + Percentage with better spacing
+        const header = new St.BoxLayout({style_class: 'ai-usage-menu-item', x_expand: true});
         header.add_child(new St.Label({text: window.label || window.key, x_expand: true, style_class: 'ai-usage-window-label'}));
-        header.add_child(new St.Label({text: `${Math.round(window.pct || 0)}%`, style_class: 'ai-usage-window-value'}));
+        const pctLabel = new St.Label({text: `${Math.round(window.pct || 0)}%`, style_class: 'ai-usage-window-value'});
+        header.add_child(pctLabel);
         this.add_child(header);
 
+        // Progress bar with improved styling
         const meter = new St.LevelBar({value: Math.max(0, Math.min(1, (window.pct || 0) / 100)), style_class: `ai-usage-meter ${meterClass(window.pct || 0)}`});
         this.add_child(meter);
+        
+        // Reset countdown with better formatting
         const reset = formatReset(window.resetAt);
-        this.add_child(new St.Label({text: `${reset.relative}${reset.absolute ? ` · ${reset.absolute}` : ''}`, style_class: 'ai-usage-reset'}));
+        const resetLabel = new St.Label({text: `${reset.relative}${reset.absolute ? ` · ${reset.absolute}` : ''}`, style_class: 'ai-usage-reset'});
+        this.add_child(resetLabel);
     }
 });
 
@@ -31,17 +38,25 @@ const ProviderItem = GObject.registerClass(class ProviderItem extends PopupMenu.
     _init(provider) {
         super._init({reactive: false, can_focus: false, style_class: 'ai-usage-provider'});
         const box = new St.BoxLayout({vertical: true, x_expand: true});
-        const header = new St.BoxLayout({x_expand: true});
-        header.add_child(new St.Label({text: provider.label || provider.id, x_expand: true, style_class: 'ai-usage-provider-name'}));
-        header.add_child(new St.Label({text: provider.ok ? 'Conectado' : (provider.error || 'No disponible'), style_class: 'ai-usage-status'}));
+        
+        // Provider header with better styling and hierarchy
+        const header = new St.BoxLayout({x_expand: true, style_class: 'ai-usage-provider-header'});
+        const nameLabel = new St.Label({text: provider.label || provider.id, x_expand: true, style_class: 'ai-usage-provider-name'});
+        const statusText = provider.ok ? 'Conectado' : (provider.error || 'No disponible');
+        const statusLabel = new St.Label({text: statusText, style_class: 'ai-usage-status'});
+        
+        header.add_child(nameLabel);
+        header.add_child(statusLabel);
         box.add_child(header);
 
+        // Quota windows with better spacing
         const windows = provider.quotaWindows || [];
         if (windows.length) {
             for (const window of windows)
                 box.add_child(new UsageMeter(window));
         } else {
-            box.add_child(new St.Label({text: provider.error || 'Sin datos de cuota', style_class: 'ai-usage-status'}));
+            const emptyLabel = new St.Label({text: provider.error || 'Sin datos de cuota', style_class: 'ai-usage-status'});
+            box.add_child(emptyLabel);
         }
         this.add_child(box);
     }
