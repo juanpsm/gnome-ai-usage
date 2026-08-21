@@ -18,6 +18,7 @@ mkdir -p "$target/backend"
 cp "$source_dir/metadata.json" "$source_dir/extension.js" "$source_dir/prefs.js" "$source_dir/stylesheet.css" "$target/"
 cp "$source_dir/utils.js" "$target/"
 cp -r "$repo_root/gnome-extension/schemas" "$target/"
+cp -r "$repo_root/package/contents/icons" "$target/"
 cp -r "$repo_root/package/contents/tools/." "$target/backend/"
 find "$target/backend" -type d -name __pycache__ -prune -exec rm -rf {} +
 glib-compile-schemas "$target/schemas"

@@ -2188,14 +2188,14 @@ PlasmoidItem {
             anchors.rightMargin: popupRoot.popupMargin
             anchors.topMargin: popupRoot.popupMargin
             height: implicitHeight
-            spacing: Kirigami.Units.largeSpacing
+            spacing: Kirigami.Units.smallSpacing
 
             // ── Header ──────────────────────────────────────────────────────
             RowLayout {
                 id: headerRow
 
                 Layout.fillWidth: true
-                spacing: 8
+                spacing: 12
                 visible: !root._exportHideHeader
 
                 Item {
@@ -2306,7 +2306,7 @@ PlasmoidItem {
                             return "AI Usage Monitor";
                         }
                         font.bold: true
-                        font.pixelSize: 15
+                        font.pixelSize: 13
                         color: Kirigami.Theme.textColor
                     }
 
@@ -2314,7 +2314,7 @@ PlasmoidItem {
                         visible: root.showSettings
                         text: "Configure API keys and providers"
                         font.pixelSize: 10
-                        opacity: 0.5
+                        opacity: 0.6
                         color: Kirigami.Theme.textColor
                     }
                 }

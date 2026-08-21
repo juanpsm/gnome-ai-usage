@@ -11,23 +11,24 @@ ColumnLayout {
 
     visible: rootItem.showSettings
     Layout.fillWidth: true
-    spacing: 10
+    spacing: 12
 
     // ── Services ───────────────────────────────────────────────
     PlasmaComponents.Label {
-        text: "Services"
+        text: "Enabled Services"
         font.bold: true
-        font.pixelSize: 10
-        opacity: 0.5
+        font.pixelSize: 11
+        opacity: 0.7
         color: Kirigami.Theme.textColor
     }
 
     // 2-column grid of toggles
     GridLayout {
         Layout.fillWidth: true
+        Layout.leftMargin: 4
         columns: 2
-        columnSpacing: 12
-        rowSpacing: 2
+        columnSpacing: 16
+        rowSpacing: 8
 
         Repeater {
             model: [
@@ -261,14 +262,15 @@ ColumnLayout {
     // ── Appearance ──────────────────────────────────────────────
     Rectangle {
         Layout.fillWidth: true
+        Layout.topMargin: 8
         height: 1
-        color: Qt.rgba(1, 1, 1, 0.08)
+        color: Qt.rgba(1, 1, 1, 0.1)
     }
     PlasmaComponents.Label {
         text: "Appearance"
         font.bold: true
-        font.pixelSize: 10
-        opacity: 0.5
+        font.pixelSize: 11
+        opacity: 0.7
         color: Kirigami.Theme.textColor
     }
 

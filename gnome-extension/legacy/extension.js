@@ -24,16 +24,26 @@ var METER_COLORS = {
 function paintMeter(area, pct) {
     var [width, height] = area.get_surface_size();
     var cr = area.get_context();
+    
+    var y = height / 2;
+    var radius = height / 2;
+    
+    // Draw background bar with rounded caps
+    cr.setLineWidth(height);
+    cr.setLineCap(1); // 1 = CAIRO_LINE_CAP_ROUND
     cr.setSourceRGBA(1, 1, 1, 0.18);
-    cr.rectangle(0, 0, width, height);
-    cr.fill();
+    cr.moveTo(radius, y);
+    cr.lineTo(width - radius, y);
+    cr.stroke();
 
-    var fillWidth = width * Math.max(0, Math.min(100, pct)) / 100;
+    // Draw active fill bar with rounded caps
+    var fillWidth = (width - 2 * radius) * Math.max(0, Math.min(100, pct)) / 100;
     if (fillWidth > 0) {
         var color = METER_COLORS[UsageUtils.meterClass(pct)];
         cr.setSourceRGB(color[0], color[1], color[2]);
-        cr.rectangle(0, 0, fillWidth, height);
-        cr.fill();
+        cr.moveTo(radius, y);
+        cr.lineTo(radius + fillWidth, y);
+        cr.stroke();
     }
     cr.$dispose();
 }
@@ -49,7 +59,7 @@ var UsageMeter = GObject.registerClass(class UsageMeter extends St.Widget {
         this.add_child(header);
 
         var pct = window.pct || 0;
-        var meter = new St.DrawingArea({style_class: 'ai-usage-meter', x_expand: true});
+        var meter = new St.DrawingArea({style_class: 'ai-usage-meter', x_expand: true, height: 8});
         meter.connect('repaint', function (area) { paintMeter(area, pct); });
         this.add_child(meter);
         var reset = UsageUtils.formatReset(window.resetAt);
@@ -61,7 +71,19 @@ var ProviderItem = GObject.registerClass(class ProviderItem extends PopupMenu.Po
     _init(provider) {
         super._init({reactive: false, can_focus: false, style_class: 'ai-usage-provider'});
         var box = new St.BoxLayout({vertical: true, x_expand: true});
-        var header = new St.BoxLayout({x_expand: true});
+        var header = new St.BoxLayout({x_expand: true, style_class: 'ai-usage-provider-header'});
+        
+        var iconFile = Gio.File.new_for_path(GLib.build_filenamev([Me.path, 'icons', provider.icon || 'codex.svg']));
+        if (iconFile.query_exists(null)) {
+            var gicon = new Gio.FileIcon({file: iconFile});
+            var icon = new St.Icon({
+                gicon: gicon,
+                icon_size: 16,
+                style_class: 'ai-usage-provider-icon'
+            });
+            header.add_child(icon);
+        }
+
         header.add_child(new St.Label({text: provider.label || provider.id, x_expand: true, style_class: 'ai-usage-provider-name'}));
         header.add_child(new St.Label({text: provider.ok ? 'Conectado' : (provider.error || 'No disponible'), style_class: 'ai-usage-status'}));
         box.add_child(header);

@@ -61,18 +61,18 @@ ColumnLayout {
 
     RowLayout {
         Layout.fillWidth: true
-        spacing: 6
+        spacing: 8
         PlasmaComponents.Label {
             text: row.label
             font.bold: true
-            font.pixelSize: 13
+            font.pixelSize: 12
             color: Kirigami.Theme.textColor
         }
         PlasmaComponents.Label {
             visible: row.resetText !== ""
             text: "· " + row.resetText
-            font.pixelSize: 11
-            opacity: 0.5
+            font.pixelSize: 10
+            opacity: 0.6
             color: Kirigami.Theme.textColor
         }
         Item {
@@ -80,20 +80,20 @@ ColumnLayout {
         }
         Rectangle {
             visible: row.countdownText !== ""
-            height: 20
-            width: cdLabel.implicitWidth + 14
-            radius: 4
-            color: Qt.rgba(1, 1, 1, 0.06)
+            height: 22
+            width: Math.max(60, cdLabel.implicitWidth + 12)
+            radius: 3
+            color: Qt.rgba(Kirigami.Theme.highlightColor.r, Kirigami.Theme.highlightColor.g, Kirigami.Theme.highlightColor.b, 0.12)
             border.width: 1
-            border.color: Qt.rgba(1, 1, 1, 0.12)
+            border.color: Qt.rgba(Kirigami.Theme.highlightColor.r, Kirigami.Theme.highlightColor.g, Kirigami.Theme.highlightColor.b, 0.2)
             Layout.alignment: Qt.AlignVCenter
             PlasmaComponents.Label {
                 id: cdLabel
                 anchors.centerIn: parent
                 text: row.countdownText
-                font.pixelSize: 11
-                color: Kirigami.Theme.textColor
-                opacity: 0.8
+                font.pixelSize: 10
+                color: Kirigami.Theme.highlightColor
+                opacity: 0.9
             }
         }
         Item {
@@ -102,7 +102,7 @@ ColumnLayout {
         PlasmaComponents.Label {
             text: Math.round(row.displayValue) + "%"
             font.bold: true
-            font.pixelSize: 14
+            font.pixelSize: 13
             color: row.value >= 90 ? row.dangerColor : row.value >= 70 ? row.warningColor : row.barColor
             Layout.alignment: Qt.AlignVCenter
         }
@@ -135,16 +135,16 @@ ColumnLayout {
 
     Item {
         Layout.fillWidth: true
-        height: 8
+        height: 10
         Row {
             anchors.fill: parent
-            spacing: 3
+            spacing: 2
             Repeater {
                 model: row.segmentCount
                 Rectangle {
-                    width: (row.width - (row.segmentCount - 1) * 3) / row.segmentCount
+                    width: (row.width - (row.segmentCount - 1) * 2) / row.segmentCount
                     height: parent.height
-                    radius: 2
+                    radius: 1.5
                     readonly property real segThresh: (index + 1) * (100 / row.segmentCount)
                     readonly property real prevThresh: index * (100 / row.segmentCount)
                     readonly property real fillRatio: {
@@ -154,29 +154,20 @@ ColumnLayout {
                             return 0.0;
                         return (row.value - prevThresh) / (100 / row.segmentCount);
                     }
-                    color: Qt.rgba(1, 1, 1, 0.06)
-                    border.width: 1
-                    border.color: Qt.rgba(1, 1, 1, 0.10)
+                    color: Qt.rgba(1, 1, 1, 0.08)
+                    border.width: 0.5
+                    border.color: Qt.rgba(1, 1, 1, 0.12)
                     Rectangle {
                         anchors {
                             left: parent.left
                             top: parent.top
                             bottom: parent.bottom
-                            margins: 1
+                            margins: 0.5
                         }
-                        width: Math.max(0, (parent.width - 2) * parent.fillRatio)
-                        radius: 1.5
-                        gradient: Gradient {
-                            orientation: Gradient.Horizontal
-                            GradientStop {
-                                position: 0.0
-                                color: Qt.lighter(row.barColor, 1.15)
-                            }
-                            GradientStop {
-                                position: 1.0
-                                color: row.barColor
-                            }
-                        }
+                        width: Math.max(0, (parent.width - 1) * parent.fillRatio)
+                        radius: 1
+                        color: row.barColor
+                        opacity: parent.fillRatio > 0 ? 1 : 0
                         Behavior on width {
                             NumberAnimation {
                                 duration: 500

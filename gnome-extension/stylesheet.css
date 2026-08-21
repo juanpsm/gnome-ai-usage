@@ -4,10 +4,23 @@
 
 .ai-usage-provider {
     min-width: 330px;
+    padding: 10px 14px;
+}
+
+.ai-usage-provider-icon {
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.ai-usage-provider-header {
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .ai-usage-provider-name {
     font-weight: bold;
+    font-size: 1.1em;
 }
 
 .ai-usage-status {
@@ -16,29 +29,25 @@
 }
 
 .ai-usage-window-label {
-    font-size: 0.9em;
+    font-size: 0.95em;
+    color: #deddda;
 }
 
 .ai-usage-window-value {
     font-weight: bold;
+    font-size: 0.95em;
 }
 
 .ai-usage-reset {
-    font-size: 0.8em;
+    font-size: 0.85em;
     color: #9a9996;
+    margin-top: 2px;
+    margin-bottom: 8px;
 }
 
 .ai-usage-meter {
-    -barlevel-height: 7px;
-    -barlevel-background-color: rgba(255, 255, 255, 0.18);
-    -barlevel-active-background-color: #62a0ea;
-    -barlevel-overdrive-color: #e5a50a;
+    height: 8px;
+    margin-top: 4px;
+    margin-bottom: 4px;
 }
 
-.ai-usage-meter.warning {
-    -barlevel-active-background-color: #e5a50a;
-}
-
-.ai-usage-meter.danger {
-    -barlevel-active-background-color: #ed333b;
-}
