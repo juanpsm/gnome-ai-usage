@@ -15,6 +15,31 @@ var UsageUtils = Me.imports.utils;
 
 var PROVIDERS = ['claude', 'openai', 'copilot', 'antigravity'];
 
+var METER_COLORS = {
+    '': [0.384, 0.627, 0.918],
+    warning: [0.898, 0.647, 0.039],
+    danger: [0.929, 0.2, 0.231],
+};
+
+function paintMeter(area, pct) {
+    var [width, height] = area.get_surface_size();
+    var cr = area.get_context();
+    cr.setSourceRGBA(1, 1, 1, 0.18);
+    cr.rectangle(0, 0, width, height);
+    cr.fill();
+
+    var fillWidth = width * Math.max(0, Math.min(100, pct)) / 100;
+    if (fillWidth > 0) {
+        var color = METER_COLORS[UsageUtils.meterClass(pct)];
+        cr.setSourceRGB(color[0], color[1], color[2]);
+        cr.rectangle(0, 0, fillWidth, height);
+        cr.fill();
+    }
+    cr.$dispose();
+}
+
+// St.LevelBar does not exist before GNOME Shell 43, so the meter is drawn by
+// hand on a Cairo surface to stay compatible with GNOME Shell 42-44.
 var UsageMeter = GObject.registerClass(class UsageMeter extends St.Widget {
     _init(window) {
         super._init({layout_manager: new Clutter.BoxLayout({orientation: Clutter.Orientation.VERTICAL})});
@@ -23,7 +48,9 @@ var UsageMeter = GObject.registerClass(class UsageMeter extends St.Widget {
         header.add_child(new St.Label({text: Math.round(window.pct || 0) + '%', style_class: 'ai-usage-window-value'}));
         this.add_child(header);
 
-        var meter = new St.LevelBar({value: Math.max(0, Math.min(1, (window.pct || 0) / 100)), style_class: 'ai-usage-meter ' + UsageUtils.meterClass(window.pct || 0)});
+        var pct = window.pct || 0;
+        var meter = new St.DrawingArea({style_class: 'ai-usage-meter', x_expand: true});
+        meter.connect('repaint', function (area) { paintMeter(area, pct); });
         this.add_child(meter);
         var reset = UsageUtils.formatReset(window.resetAt);
         this.add_child(new St.Label({text: reset.relative + (reset.absolute ? ' · ' + reset.absolute : ''), style_class: 'ai-usage-reset'}));
