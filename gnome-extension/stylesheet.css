@@ -14,6 +14,15 @@
     color: rgba(255, 255, 255, 0.55);
 }
 
+/* ─ "Connected" indicator — a glowing green dot instead of text ─ */
+.ai-usage-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 5px;
+    background-color: #2ecc71;
+    box-shadow: 0 0 6px 2px rgba(46, 204, 113, 0.65);
+}
+
 /* ─ Quota row label + percentage ─ */
 .ai-usage-menu-item {
     padding: 2px 0;

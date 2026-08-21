@@ -2,6 +2,13 @@
 .ai-usage-provider { min-width: 330px; }
 .ai-usage-provider-name { font-weight: bold; }
 .ai-usage-status, .ai-usage-reset { color: #9a9996; }
+.ai-usage-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 5px;
+    background-color: #2ecc71;
+    box-shadow: 0 0 6px 2px rgba(46, 204, 113, 0.65);
+}
 .ai-usage-window-label { font-size: 0.9em; }
 .ai-usage-window-value { font-weight: bold; }
 .ai-usage-reset { font-size: 0.8em; margin-top: 6px; margin-bottom: 4px; }

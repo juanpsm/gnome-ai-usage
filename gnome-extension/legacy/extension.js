@@ -85,7 +85,10 @@ var ProviderItem = GObject.registerClass(class ProviderItem extends PopupMenu.Po
         }
 
         header.add_child(new St.Label({text: provider.label || provider.id, x_expand: true, style_class: 'ai-usage-provider-name'}));
-        header.add_child(new St.Label({text: provider.ok ? 'Conectado' : (provider.error || 'No disponible'), style_class: 'ai-usage-status'}));
+        if (provider.ok)
+            header.add_child(new St.Widget({style_class: 'ai-usage-status-dot', y_align: Clutter.ActorAlign.CENTER}));
+        else
+            header.add_child(new St.Label({text: provider.error || 'No disponible', style_class: 'ai-usage-status'}));
         box.add_child(header);
 
         var windows = provider.quotaWindows || [];

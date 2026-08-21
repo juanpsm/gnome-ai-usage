@@ -42,11 +42,11 @@ const ProviderItem = GObject.registerClass(class ProviderItem extends PopupMenu.
         // Provider header with better styling and hierarchy
         const header = new St.BoxLayout({x_expand: true, style_class: 'ai-usage-provider-header'});
         const nameLabel = new St.Label({text: provider.label || provider.id, x_expand: true, style_class: 'ai-usage-provider-name'});
-        const statusText = provider.ok ? 'Conectado' : (provider.error || 'No disponible');
-        const statusLabel = new St.Label({text: statusText, style_class: 'ai-usage-status'});
-        
         header.add_child(nameLabel);
-        header.add_child(statusLabel);
+        if (provider.ok)
+            header.add_child(new St.Widget({style_class: 'ai-usage-status-dot', y_align: Clutter.ActorAlign.CENTER}));
+        else
+            header.add_child(new St.Label({text: provider.error || 'No disponible', style_class: 'ai-usage-status'}));
         box.add_child(header);
 
         // Quota windows with better spacing
