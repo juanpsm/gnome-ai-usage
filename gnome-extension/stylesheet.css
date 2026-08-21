@@ -1,89 +1,80 @@
-/* ─ Provider Container ─ */
+/* ─ Provider Container — flat, no card border ─ */
 .ai-usage-provider {
     min-width: 360px;
-    padding: 12px 16px;
-    margin-bottom: 8px;
-    border-radius: 8px;
-    background-color: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 10px 16px;
 }
 
 /* ─ Provider Header (Name + Status) ─ */
-.ai-usage-provider-header {
-    margin-bottom: 12px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-}
-
 .ai-usage-provider-name {
-    font-weight: 600;
-    font-size: 1.05em;
-    letter-spacing: 0.3px;
+    font-weight: bold;
 }
 
 .ai-usage-status {
     font-size: 0.88em;
     color: rgba(255, 255, 255, 0.55);
-    font-weight: 500;
 }
 
-/* ─ Quota Windows (Label + Percentage) ─ */
+/* ─ Quota row label + percentage ─ */
 .ai-usage-menu-item {
-    padding: 10px 0;
-    margin-bottom: 8px;
+    padding: 2px 0;
 }
 
 .ai-usage-window-label {
     font-size: 0.92em;
-    color: rgba(255, 255, 255, 0.9);
-    font-weight: 500;
+    color: rgba(255, 255, 255, 0.85);
 }
 
 .ai-usage-window-value {
-    font-weight: 700;
+    font-weight: bold;
     font-size: 0.92em;
-    min-width: 50px;
-    text-align: right;
-    color: #ffffff;
-}
-
-/* ─ Progress Bar ─ */
-.ai-usage-meter {
-    height: 10px;
-    margin: 6px 0;
-    border-radius: 5px;
-    background-color: rgba(255, 255, 255, 0.08);
-}
-
-.ai-usage-meter block.low {
-    background-color: #26c485;
-    border-radius: 5px;
-}
-
-.ai-usage-meter block.medium {
-    background-color: #f5a623;
-    border-radius: 5px;
-}
-
-.ai-usage-meter block.high {
-    background-color: #ff6b6b;
-    border-radius: 5px;
 }
 
 /* ─ Reset Countdown ─ */
 .ai-usage-reset {
     font-size: 0.82em;
-    color: rgba(255, 255, 255, 0.5);
-    margin-top: 4px;
-    margin-bottom: 0;
-    font-weight: 400;
-    letter-spacing: 0.2px;
+    color: rgba(255, 255, 255, 0.45);
+    margin-bottom: 4px;
 }
 
-/* ─ Empty State ─ */
-.ai-usage-empty {
-    padding: 20px 16px;
-    text-align: center;
-    color: rgba(255, 255, 255, 0.6);
+/* ─ Usage bar — gap before the reset text below it ─ */
+.ai-usage-meter {
+    margin-bottom: 6px;
 }
 
+/* ─ Provider icon ─ */
+.ai-usage-provider-icon {
+    margin-right: 10px;
+}
+
+/* ─ GNOME Shell reserves a fixed-width "ornament" (checkbox/radio) slot
+   on the left of every popup-menu-item; we never use it, and it has no
+   counterpart on the right, which is what makes the left margin look
+   bigger than the right one. Zero it out for our own items only. ─ */
+.ai-usage-provider > .popup-menu-ornament,
+.ai-usage-toolbar-item > .popup-menu-ornament {
+    width: 0;
+}
+
+/* ─ Bottom toolbar (refresh + settings) ─ */
+.ai-usage-toolbar {
+    padding: 6px 12px;
+}
+
+.ai-usage-icon-button {
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    margin-left: 6px;
+    padding: 0;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.ai-usage-icon-button:hover,
+.ai-usage-icon-button:focus {
+    background-color: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+}
+
+.ai-usage-icon-button:active {
+    background-color: rgba(255, 255, 255, 0.2);
+}

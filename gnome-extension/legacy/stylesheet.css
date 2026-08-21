@@ -4,5 +4,24 @@
 .ai-usage-status, .ai-usage-reset { color: #9a9996; }
 .ai-usage-window-label { font-size: 0.9em; }
 .ai-usage-window-value { font-weight: bold; }
-.ai-usage-reset { font-size: 0.8em; }
-.ai-usage-meter { height: 7px; border-radius: 4px; }
+.ai-usage-reset { font-size: 0.8em; margin-top: 6px; margin-bottom: 4px; }
+.ai-usage-meter { height: 7px; border-radius: 4px; margin-top: 2px; }
+.ai-usage-provider-icon { margin-right: 10px; }
+/* GNOME Shell reserves a fixed-width "ornament" slot on the left of every
+   popup-menu-item that we never use, with no counterpart on the right —
+   that is what makes the left margin look bigger than the right one. */
+.ai-usage-provider > .popup-menu-ornament,
+.ai-usage-toolbar-item > .popup-menu-ornament {
+    width: 0;
+}
+.ai-usage-toolbar { padding: 6px 12px; }
+.ai-usage-icon-button {
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    margin-left: 6px;
+    padding: 0;
+    color: rgba(255, 255, 255, 0.8);
+}
+.ai-usage-icon-button:hover, .ai-usage-icon-button:focus { background-color: rgba(255, 255, 255, 0.12); color: #ffffff; }
+.ai-usage-icon-button:active { background-color: rgba(255, 255, 255, 0.2); }

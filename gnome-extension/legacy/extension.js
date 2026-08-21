@@ -197,10 +197,39 @@ var AiUsageExtension = class {
         this._indicatorLabel.text = (selected ? selected.label : 'AI') + ' ' + Math.round(value) + '%';
         this._indicator.menu.removeAll();
         this._providers.forEach(function (provider) { this._indicator.menu.addMenuItem(new ProviderItem(provider)); }.bind(this));
-        var refresh = new PopupMenu.PopupMenuItem('Actualizar');
-        refresh.connect('activate', this._refresh.bind(this));
         this._indicator.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-        this._indicator.menu.addMenuItem(refresh);
+        this._indicator.menu.addMenuItem(this._buildToolbar());
+    }
+
+    _buildToolbar() {
+        var row = new St.BoxLayout({style_class: 'ai-usage-toolbar', x_expand: true});
+        row.add_child(new St.Widget({x_expand: true}));
+        row.add_child(this._makeIconButton('view-refresh-symbolic', this._refresh.bind(this)));
+        row.add_child(this._makeIconButton('preferences-system-symbolic', this._openSettings.bind(this)));
+
+        var item = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false, style_class: 'ai-usage-toolbar-item'});
+        item.add_child(row);
+        return item;
+    }
+
+    _makeIconButton(iconName, onClick) {
+        var button = new St.Button({
+            style_class: 'ai-usage-icon-button',
+            can_focus: true,
+            x_align: Clutter.ActorAlign.CENTER,
+            y_align: Clutter.ActorAlign.CENTER,
+            child: new St.Icon({icon_name: iconName, icon_size: 16}),
+        });
+        button.connect('clicked', onClick);
+        return button;
+    }
+
+    _openSettings() {
+        try {
+            Gio.Subprocess.new(['gnome-extensions', 'prefs', Me.metadata.uuid], Gio.SubprocessFlags.NONE);
+        } catch (error) {
+            logError(error);
+        }
     }
 
     _renderError(message) {

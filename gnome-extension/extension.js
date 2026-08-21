@@ -151,10 +151,31 @@ export default class AiUsageExtension extends Extension {
         this._indicator.menu.removeAll();
         for (const provider of this._providers)
             this._indicator.menu.addMenuItem(new ProviderItem(provider));
-        const refresh = new PopupMenu.PopupMenuItem('Actualizar');
-        refresh.connect('activate', () => this._refresh());
         this._indicator.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-        this._indicator.menu.addMenuItem(refresh);
+        this._indicator.menu.addMenuItem(this._buildToolbar());
+    }
+
+    _buildToolbar() {
+        const row = new St.BoxLayout({style_class: 'ai-usage-toolbar', x_expand: true});
+        row.add_child(new St.Widget({x_expand: true}));
+        row.add_child(this._makeIconButton('view-refresh-symbolic', () => this._refresh()));
+        row.add_child(this._makeIconButton('preferences-system-symbolic', () => this.openPreferences()));
+
+        const item = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false, style_class: 'ai-usage-toolbar-item'});
+        item.add_child(row);
+        return item;
+    }
+
+    _makeIconButton(iconName, onClick) {
+        const button = new St.Button({
+            style_class: 'ai-usage-icon-button',
+            can_focus: true,
+            x_align: Clutter.ActorAlign.CENTER,
+            y_align: Clutter.ActorAlign.CENTER,
+            child: new St.Icon({icon_name: iconName, icon_size: 16}),
+        });
+        button.connect('clicked', onClick);
+        return button;
     }
 
     _renderError(message) {
