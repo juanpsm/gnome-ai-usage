@@ -1,0 +1,44 @@
+.ai-usage-menu-item {
+    padding: 8px 12px;
+}
+
+.ai-usage-provider {
+    min-width: 330px;
+}
+
+.ai-usage-provider-name {
+    font-weight: bold;
+}
+
+.ai-usage-status {
+    font-size: 0.9em;
+    color: #9a9996;
+}
+
+.ai-usage-window-label {
+    font-size: 0.9em;
+}
+
+.ai-usage-window-value {
+    font-weight: bold;
+}
+
+.ai-usage-reset {
+    font-size: 0.8em;
+    color: #9a9996;
+}
+
+.ai-usage-meter {
+    -barlevel-height: 7px;
+    -barlevel-background-color: rgba(255, 255, 255, 0.18);
+    -barlevel-active-background-color: #62a0ea;
+    -barlevel-overdrive-color: #e5a50a;
+}
+
+.ai-usage-meter.warning {
+    -barlevel-active-background-color: #e5a50a;
+}
+
+.ai-usage-meter.danger {
+    -barlevel-active-background-color: #ed333b;
+}

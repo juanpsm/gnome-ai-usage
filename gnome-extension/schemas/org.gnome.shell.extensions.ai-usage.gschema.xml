@@ -1,0 +1,17 @@
+<schemalist>
+  <schema id="org.gnome.shell.extensions.ai-usage" path="/org/gnome/shell/extensions/ai-usage/">
+    <key name="refresh-interval" type="u">
+      <default>300</default>
+      <summary>Refresh interval in seconds</summary>
+    </key>
+    <key name="enabled-providers" type="as">
+      <default>[ 'claude', 'openai', 'copilot', 'antigravity' ]</default>
+      <summary>Providers shown in the popover</summary>
+    </key>
+    <key name="indicator-mode" type="s">
+      <default>'aggregate'</default>
+      <summary>Panel indicator mode</summary>
+      <choices><choice value="aggregate"/><choice value="claude"/><choice value="openai"/><choice value="copilot"/><choice value="antigravity"/></choices>
+    </key>
+  </schema>
+</schemalist>
