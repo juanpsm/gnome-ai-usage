@@ -46,6 +46,18 @@
 
 A KDE Plasma 6 panel widget for tracking AI API quota usage across multiple services. Monitor your **Claude** subscription windows and local activity stats, **Antigravity/Google AI Studio**, **OpenAI API and Codex plan limits**, **Grok CLI**, **Kiro**, **Mistral AI**, **OpenRouter**, **Z.AI**, **GitHub Copilot**, **DeepSeek**, and **Kimi / Moonshot AI** usage or balance at a glance with animated segmented bars, live countdown timers, account status, and per-model breakdowns.
 
+## GNOME Shell extension
+
+This fork also includes a GNOME Shell extension in [`gnome-extension/`](gnome-extension/). It reuses the Python backend and currently shows Claude, OpenAI/Codex, GitHub Copilot, and Gemini/Antigravity in a panel indicator and popover. Providers with multiple quota windows, such as Claude, show one row per window with the percentage used, time remaining, and exact reset date.
+
+Requirements: GNOME Shell 46+, GJS, GLib schemas, and Python 3.8+. Install it from this checkout with:
+
+```sh
+make gnome-install
+```
+
+Then enable **AI Usage** from GNOME Extensions. Preferences are available from the extension's settings page.
+
 ---
 
 ## Features

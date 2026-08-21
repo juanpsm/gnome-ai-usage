@@ -1,4 +1,4 @@
-.PHONY: help view view-h install pack tag test lint-py check-pricing
+.PHONY: help view view-h install gnome-install pack tag test lint-py check-pricing
 .DEFAULT_GOAL := help
 
 help: ## list targets
@@ -20,6 +20,9 @@ view-h: ## preview widget (horizontal)
 
 install: ## install test copy to local Plasma session
 	@./test_install.sh
+
+gnome-install: ## install the GNOME Shell extension locally
+	@$(MAKE) -C gnome-extension install
 
 test: ## run the provider backend contract tests
 	@./tests/get-ai-usage.test.sh
