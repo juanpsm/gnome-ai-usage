@@ -13,6 +13,8 @@ result
 *.swp
 .idea/
 .vscode/
+.superpowers/
+gnome-extension/schemas/gschemas.compiled
 
 # System junk
 .DS_Store
