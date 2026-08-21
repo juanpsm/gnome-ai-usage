@@ -1,7 +1,11 @@
-/* exported buildPrefsWidget */
+/* exported init, buildPrefsWidget */
 
 var Gtk = imports.gi.Gtk;
 var ExtensionUtils = imports.misc.extensionUtils;
+
+function init() {
+    // Preferences initialization (unused in this extension but required by GNOME Shell < 45)
+}
 
 function buildPrefsWidget() {
     var settings = ExtensionUtils.getSettings();
