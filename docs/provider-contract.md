@@ -1,6 +1,6 @@
 # Provider data contract (schema version 1)
 
-All three frontends — the KDE Plasma widget (`package/contents/ui`), the
+All three frontends — the GNOME Shell extension (`gnome-extension/`), the
 Hyprland/Quickshell shell (`hyprland/`) and the terminal frontend
 (`aiusage/render.py`) — get all of their provider data from a single backend:
 
@@ -15,9 +15,10 @@ shared provider backend (Python, stdlib only)   package/contents/tools/aiusage
           stable JSON model
            ┌─────────┼─────────┐
            ▼         ▼         ▼
-      KDE Plasma Quickshell terminal
-          UI          UI     aiusage/render.py
-   (shared JS: package/contents/code/Format.js, UsageHistory.js)
+        GNOME   Quickshell terminal
+      extension     UI     aiusage/render.py
+   (shared JS: package/contents/code/Format.js, UsageHistory.js — Quickshell only;
+    the GNOME extension is plain GJS/St, not QML)
 ```
 
 No frontend performs a provider network request, parses a provider response, or
@@ -28,7 +29,7 @@ their own widgets — or columns — and nothing else.
 
 ```bash
 get-ai-usage --provider claude            # one provider
-get-ai-usage --provider claude,openai     # several (KDE: active tab + pins)
+get-ai-usage --provider claude,openai     # several providers
 get-ai-usage --all                        # every enabled provider (Hyprland)
 get-ai-usage --normalize < envelope.json  # replay a raw envelope, no network
 get-ai-usage --list                       # known provider ids
@@ -46,11 +47,11 @@ get-ai-usage --all | ai-usage-cli   # render a fetched envelope, no second fetch
 `--all` respects the provider toggles in the shared settings file
 (`$XDG_CONFIG_HOME/ai-usage-widget/hyprland-settings.json`, overridable with
 `AI_USAGE_CONFIG`). `--provider` fetches exactly what was asked for, because the
-Plasma widget keeps its own toggles in the plasmoid configuration.
+GNOME extension keeps its own toggles in GSettings.
 
-API keys come from `WIDGET_*` environment variables (what Plasma passes) or from
-the `keys` object of the settings file (what the Hyprland settings page writes).
-The environment always wins.
+API keys come from `WIDGET_*` environment variables (what the GNOME extension
+passes) or from the `keys` object of the settings file (what the Hyprland
+settings page writes). The environment always wins.
 
 ## Envelope
 
@@ -102,12 +103,12 @@ when its remembered one disappears.
 | `chartWindows[]` | chart ranges — see below. Empty when the provider has no chartable series |
 | `slots[]` | compact panel pills: `pct`, `color`, `text` (null → show the meter), `tooltip` |
 | `historyValues` | series keys this provider contributes to the shared usage history |
-| `details` | everything the detailed KDE tabs render |
+| `details` | everything the detailed per-provider views render |
 
 All timestamps are **epoch seconds**, `0` meaning "no reset known".
 `resetText` is a preformatted local-time string for frontends that do not want
-to format it themselves; the Plasma widget formats from `resetAt` instead so it
-keeps following the desktop locale.
+to format it themselves; the Quickshell shell formats from `resetAt` instead
+so it keeps following the desktop locale.
 
 ### Chart windows
 
@@ -253,9 +254,10 @@ history and formats its own countdowns from `resetText`):
 - `UsageHistory.js` — collecting `historyValues` from a response, merging into
   the rolling series, migrating legacy points, and replaying quota resets.
 
-Persistence stays with each frontend, because Plasma writes its widget config
-and Quickshell writes the mirror file. Both write the same format to the same
-`~/.local/share/ai-usage-widget/usage-history-latest.json`.
+Persistence is currently a Quickshell-only concern: it writes
+`~/.local/share/ai-usage-widget/usage-history-latest.json` as its history
+mirror. The GNOME extension does not render a chart yet, so it has nothing to
+persist.
 
 ## Testing
 
