@@ -29,8 +29,8 @@ test('picks the highest available quota window, or the summary pct with none', (
 });
 
 test('every known provider has a deliberate usage-URL and key-help entry', () => {
-    // kiro has no web usage page (desktop IDE state snapshot) — deliberate skip.
-    const usageUrlSkips = new Set(['kiro']);
+    // antigravity/kiro have no web usage page (IDE-only) — deliberate skip.
+    const usageUrlSkips = new Set(['antigravity', 'kiro']);
     // claude/antigravity/kiro need no pasted key — deliberate skip.
     const keyHelpSkips = new Set(['claude', 'antigravity', 'kiro']);
 

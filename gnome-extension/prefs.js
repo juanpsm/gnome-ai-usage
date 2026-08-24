@@ -8,7 +8,9 @@ import {PROVIDER_KEY_HELP_URLS} from './utils.js';
 // PROVIDER_KEY_HELP_URLS (keyed by provider id); claude-admin-api-key is its
 // own thing (the org-wide admin key, not a regular Claude login).
 const CREDENTIAL_HELP_URLS = {
-    'claude-admin-api-key': 'https://console.anthropic.com/settings/admin-keys',
+    // Admin Keys lives under a left-nav item in the console, not a confirmed
+    // stable deep link — pointing at the console root rather than guessing.
+    'claude-admin-api-key': 'https://console.anthropic.com',
     'openai-api-key': PROVIDER_KEY_HELP_URLS.openai,
     'mistral-api-key': PROVIDER_KEY_HELP_URLS.mistral,
     'openrouter-api-key': PROVIDER_KEY_HELP_URLS.openrouter,
