@@ -8,9 +8,28 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
-import {formatReset, meterClass, providerPercent} from './utils.js';
+import {formatReset, meterClass, providerPercent, PROVIDER_USAGE_URLS} from './utils.js';
 
 const PROVIDERS = ['claude', 'antigravity', 'openai', 'kiro', 'mistral', 'openrouter', 'grok', 'zai', 'copilot', 'deepseek', 'kimi'];
+
+function statusDotClass(provider) {
+    if (!provider.ok)
+        return 'ai-usage-status-dot-error';
+    if (provider.stale)
+        return 'ai-usage-status-dot-stale';
+    return 'ai-usage-status-dot';
+}
+
+// OpenRouter reports spend as details.usageUSD; Claude/OpenAI report it as
+// details.organizationUsage.totalCostUSD — same aggregate-cost idea, two
+// different contract shapes (see docs/provider-contract.md).
+function providerCostUSD(provider) {
+    if (!provider.ok)
+        return 0;
+    if (provider.id === 'openrouter')
+        return Number(provider.details?.usageUSD || 0);
+    return Number(provider.details?.organizationUsage?.totalCostUSD || 0);
+}
 
 const UsageMeter = GObject.registerClass(class UsageMeter extends St.Widget {
     _init(window) {
@@ -36,15 +55,19 @@ const UsageMeter = GObject.registerClass(class UsageMeter extends St.Widget {
 
 const ProviderItem = GObject.registerClass(class ProviderItem extends PopupMenu.PopupBaseMenuItem {
     _init(provider) {
-        super._init({reactive: false, can_focus: false, style_class: 'ai-usage-provider'});
+        const usageUrl = PROVIDER_USAGE_URLS[provider.id];
+        const styleClass = usageUrl ? 'ai-usage-provider ai-usage-provider-clickable' : 'ai-usage-provider';
+        super._init({reactive: !!usageUrl, can_focus: !!usageUrl, style_class: styleClass});
+        if (usageUrl)
+            this.connect('activate', () => Gio.AppInfo.launch_default_for_uri(usageUrl, null));
+
         const box = new St.BoxLayout({vertical: true, x_expand: true});
-        
+
         // Provider header with better styling and hierarchy
         const header = new St.BoxLayout({x_expand: true, style_class: 'ai-usage-provider-header'});
         const nameLabel = new St.Label({text: provider.label || provider.id, x_expand: true, style_class: 'ai-usage-provider-name'});
         header.add_child(nameLabel);
-        const dotClass = provider.ok ? 'ai-usage-status-dot' : 'ai-usage-status-dot-error';
-        header.add_child(new St.Widget({style_class: dotClass, y_align: Clutter.ActorAlign.CENTER}));
+        header.add_child(new St.Widget({style_class: statusDotClass(provider), y_align: Clutter.ActorAlign.CENTER}));
         box.add_child(header);
 
         // Quota windows with better spacing
@@ -55,6 +78,17 @@ const ProviderItem = GObject.registerClass(class ProviderItem extends PopupMenu.
         } else {
             const emptyLabel = new St.Label({text: provider.error || 'Sin datos de cuota', style_class: 'ai-usage-status'});
             box.add_child(emptyLabel);
+        }
+
+        // Per-model cost breakdown, when the backend has priced any models
+        // for this provider (currently Claude and OpenAI).
+        const models = provider.details?.organizationUsage?.models;
+        if (models && typeof models === 'object') {
+            const priced = Object.entries(models)
+                .filter(([, m]) => m?.priced && Number(m.cost_usd) > 0)
+                .sort(([, a], [, b]) => Number(b.cost_usd) - Number(a.cost_usd));
+            for (const [name, m] of priced)
+                box.add_child(new St.Label({text: `${name} — $${Number(m.cost_usd).toFixed(2)}`, style_class: 'ai-usage-model-row'}));
         }
         this.add_child(box);
     }
@@ -149,8 +183,17 @@ export default class AiUsageExtension extends Extension {
         this._indicator.menu.removeAll();
         for (const provider of this._providers)
             this._indicator.menu.addMenuItem(new ProviderItem(provider));
+        const totalCost = this._providers.reduce((sum, p) => sum + providerCostUSD(p), 0);
+        if (totalCost > 0)
+            this._indicator.menu.addMenuItem(this._buildCostFooter(totalCost));
         this._indicator.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         this._indicator.menu.addMenuItem(this._buildToolbar());
+    }
+
+    _buildCostFooter(totalCost) {
+        const item = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false, style_class: 'ai-usage-cost-footer-item'});
+        item.add_child(new St.Label({text: `Total: $${totalCost.toFixed(2)}`, style_class: 'ai-usage-cost-footer', x_expand: true}));
+        return item;
     }
 
     _buildToolbar() {

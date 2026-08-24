@@ -36,3 +36,34 @@ export function providerPercent(provider) {
         return Number(provider?.summary?.pct || 0);
     return Math.max(...windows.map(w => Number(w.pct || 0)));
 }
+
+// Where clicking a provider's row should send you. Best-effort — some of
+// these are guesses at the current URL for that provider's usage page and
+// may need correcting as providers redesign their sites.
+export const PROVIDER_USAGE_URLS = {
+    claude: 'https://claude.ai/settings/usage',
+    openai: 'https://platform.openai.com/usage',
+    antigravity: 'https://aistudio.google.com/usage',
+    copilot: 'https://github.com/settings/billing/summary',
+    mistral: 'https://console.mistral.ai/usage',
+    openrouter: 'https://openrouter.ai/activity',
+    deepseek: 'https://platform.deepseek.com/usage',
+    kimi: 'https://platform.moonshot.ai/console/account',
+    grok: 'https://console.x.ai',
+    zai: 'https://z.ai/manage-apikey/apikey-list',
+    // kiro: no web usage page — it's a local desktop IDE state snapshot.
+};
+
+// Where to get an API key for each provider that needs one pasted into
+// settings. Same best-effort caveat as PROVIDER_USAGE_URLS.
+export const PROVIDER_KEY_HELP_URLS = {
+    openai: 'https://platform.openai.com/api-keys',
+    mistral: 'https://console.mistral.ai/api-keys',
+    openrouter: 'https://openrouter.ai/keys',
+    grok: 'https://console.x.ai',
+    zai: 'https://z.ai/manage-apikey/apikey-list',
+    copilot: 'https://github.com/settings/personal-access-tokens/new',
+    deepseek: 'https://platform.deepseek.com/api_keys',
+    kimi: 'https://platform.moonshot.ai/console/api-keys',
+    // claude, antigravity, kiro: no pasted key — nothing to link here.
+};

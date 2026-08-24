@@ -1,7 +1,25 @@
 /* exported init, buildPrefsWidget */
 
+var Gio = imports.gi.Gio;
 var Gtk = imports.gi.Gtk;
 var ExtensionUtils = imports.misc.extensionUtils;
+var Me = ExtensionUtils.getCurrentExtension();
+var UsageUtils = Me.imports.utils;
+
+// Settings-key -> "where do I get this" URL. Most of these mirror
+// UsageUtils.PROVIDER_KEY_HELP_URLS (keyed by provider id); claude-admin-api-key
+// is its own thing (the org-wide admin key, not a regular Claude login).
+var CREDENTIAL_HELP_URLS = {
+    'claude-admin-api-key': 'https://console.anthropic.com/settings/admin-keys',
+    'openai-api-key': UsageUtils.PROVIDER_KEY_HELP_URLS.openai,
+    'mistral-api-key': UsageUtils.PROVIDER_KEY_HELP_URLS.mistral,
+    'openrouter-api-key': UsageUtils.PROVIDER_KEY_HELP_URLS.openrouter,
+    'grok-api-key': UsageUtils.PROVIDER_KEY_HELP_URLS.grok,
+    'zai-token': UsageUtils.PROVIDER_KEY_HELP_URLS.zai,
+    'github-token': UsageUtils.PROVIDER_KEY_HELP_URLS.copilot,
+    'deepseek-api-key': UsageUtils.PROVIDER_KEY_HELP_URLS.deepseek,
+    'moonshot-api-key': UsageUtils.PROVIDER_KEY_HELP_URLS.kimi,
+};
 
 function init() {
     // Preferences initialization (unused in this extension but required by GNOME Shell < 45)
@@ -50,7 +68,7 @@ function addSwitchRow(listBox, labelText, active, callback) {
     listBox.append(row);
 }
 
-function addEntryRow(listBox, labelText, text, visibility, placeholder, callback) {
+function addEntryRow(listBox, labelText, text, visibility, placeholder, callback, helpUrl) {
     var row = new Gtk.ListBoxRow({
         activatable: false
     });
@@ -65,8 +83,20 @@ function addEntryRow(listBox, labelText, text, visibility, placeholder, callback
     var label = new Gtk.Label({label: labelText, xalign: 0, hexpand: true});
     var entry = new Gtk.Entry({text: text, visibility: visibility, placeholder_text: placeholder || '', valign: Gtk.Align.CENTER, width_request: 220});
     entry.connect('changed', callback);
-    
+
     box.append(label);
+    if (helpUrl) {
+        var helpButton = new Gtk.Button({
+            icon_name: 'web-browser-symbolic',
+            valign: Gtk.Align.CENTER,
+            has_frame: false,
+            tooltip_text: 'Obtener esta key'
+        });
+        helpButton.connect('clicked', function () {
+            Gio.AppInfo.launch_default_for_uri(helpUrl, null);
+        });
+        box.append(helpButton);
+    }
     box.append(entry);
     row.set_child(box);
     listBox.append(row);
@@ -171,7 +201,7 @@ function buildPrefsWidget() {
     credentialsFields.forEach(function (field) {
         addEntryRow(credsList, field[1], settings.get_string(field[0]), false, 'Ingresa la clave o token', function (entry) {
             settings.set_string(field[0], entry.text);
-        });
+        }, CREDENTIAL_HELP_URLS[field[0]]);
     });
     notebook.append_page(wrapInScroll(credsList), new Gtk.Label({label: 'Credenciales'}));
 

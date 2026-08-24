@@ -31,6 +31,40 @@
     box-shadow: 0 0 6px 2px rgba(255, 107, 107, 0.65);
 }
 
+/* Ok, but the *last* refresh failed and this is cached data. */
+.ai-usage-status-dot-stale {
+    width: 8px;
+    height: 8px;
+    border-radius: 5px;
+    background-color: #f4a460;
+    box-shadow: 0 0 6px 2px rgba(244, 164, 96, 0.65);
+}
+
+/* ─ Clicking a provider row opens its usage page ─ */
+.ai-usage-provider-clickable:hover,
+.ai-usage-provider-clickable:focus {
+    background-color: rgba(255, 255, 255, 0.06);
+}
+
+/* ─ Per-model cost breakdown rows ─ */
+.ai-usage-model-row {
+    font-size: 0.82em;
+    color: rgba(255, 255, 255, 0.45);
+    padding-left: 4px;
+}
+
+/* ─ Cost aggregation footer ─ */
+.ai-usage-cost-footer-item {
+    padding: 4px 16px 6px 16px;
+}
+
+.ai-usage-cost-footer {
+    font-size: 0.88em;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.75);
+    text-align: right;
+}
+
 /* ─ Quota row label + percentage ─ */
 .ai-usage-menu-item {
     padding: 2px 0;
@@ -68,7 +102,8 @@
    counterpart on the right, which is what makes the left margin look
    bigger than the right one. Zero it out for our own items only. ─ */
 .ai-usage-provider > .popup-menu-ornament,
-.ai-usage-toolbar-item > .popup-menu-ornament {
+.ai-usage-toolbar-item > .popup-menu-ornament,
+.ai-usage-cost-footer-item > .popup-menu-ornament {
     width: 0;
 }
 

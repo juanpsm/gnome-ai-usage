@@ -16,6 +16,17 @@
     background-color: #ff6b6b;
     box-shadow: 0 0 6px 2px rgba(255, 107, 107, 0.65);
 }
+.ai-usage-status-dot-stale {
+    width: 8px;
+    height: 8px;
+    border-radius: 5px;
+    background-color: #f4a460;
+    box-shadow: 0 0 6px 2px rgba(244, 164, 96, 0.65);
+}
+.ai-usage-provider-clickable:hover, .ai-usage-provider-clickable:focus { background-color: rgba(255, 255, 255, 0.06); }
+.ai-usage-model-row { font-size: 0.82em; color: #9a9996; padding-left: 4px; }
+.ai-usage-cost-footer-item { padding: 4px 16px 6px 16px; }
+.ai-usage-cost-footer { font-size: 0.88em; font-weight: bold; color: #cccccc; text-align: right; }
 .ai-usage-window-label { font-size: 0.9em; }
 .ai-usage-window-value { font-weight: bold; }
 .ai-usage-reset { font-size: 0.8em; margin-top: 6px; margin-bottom: 4px; }
@@ -25,7 +36,8 @@
    popup-menu-item that we never use, with no counterpart on the right —
    that is what makes the left margin look bigger than the right one. */
 .ai-usage-provider > .popup-menu-ornament,
-.ai-usage-toolbar-item > .popup-menu-ornament {
+.ai-usage-toolbar-item > .popup-menu-ornament,
+.ai-usage-cost-footer-item > .popup-menu-ornament {
     width: 0;
 }
 .ai-usage-toolbar-item { padding-top: 2px; padding-bottom: 2px; }
