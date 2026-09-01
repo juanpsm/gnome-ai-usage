@@ -12,6 +12,31 @@ import {formatReset, meterClass, providerPercent} from './utils.js';
 
 const PROVIDERS = ['claude', 'antigravity', 'openai', 'kiro', 'mistral', 'openrouter', 'grok', 'zai', 'copilot', 'deepseek', 'kimi'];
 
+const METER_COLORS = {
+    '': [0.384, 0.627, 0.918],
+    warning: [0.898, 0.647, 0.039],
+    danger: [0.929, 0.2, 0.231],
+};
+
+// St exposes no level-bar widget, so the meter is drawn by hand on a Cairo
+// surface, mirroring the legacy variant.
+function paintMeter(area, pct) {
+    const [width, height] = area.get_surface_size();
+    const cr = area.get_context();
+    cr.setSourceRGBA(1, 1, 1, 0.18);
+    cr.rectangle(0, 0, width, height);
+    cr.fill();
+
+    const fillWidth = width * Math.max(0, Math.min(100, pct)) / 100;
+    if (fillWidth > 0) {
+        const color = METER_COLORS[meterClass(pct)];
+        cr.setSourceRGB(color[0], color[1], color[2]);
+        cr.rectangle(0, 0, fillWidth, height);
+        cr.fill();
+    }
+    cr.$dispose();
+}
+
 const UsageMeter = GObject.registerClass(class UsageMeter extends St.Widget {
     _init(window) {
         super._init({layout_manager: new Clutter.BoxLayout({orientation: Clutter.Orientation.VERTICAL})});
@@ -20,7 +45,9 @@ const UsageMeter = GObject.registerClass(class UsageMeter extends St.Widget {
         header.add_child(new St.Label({text: `${Math.round(window.pct || 0)}%`, style_class: 'ai-usage-window-value'}));
         this.add_child(header);
 
-        const meter = new St.LevelBar({value: Math.max(0, Math.min(1, (window.pct || 0) / 100)), style_class: `ai-usage-meter ${meterClass(window.pct || 0)}`});
+        const pct = window.pct || 0;
+        const meter = new St.DrawingArea({style_class: 'ai-usage-meter', x_expand: true});
+        meter.connect('repaint', area => paintMeter(area, pct));
         this.add_child(meter);
         const reset = formatReset(window.resetAt);
         this.add_child(new St.Label({text: `${reset.relative}${reset.absolute ? ` · ${reset.absolute}` : ''}`, style_class: 'ai-usage-reset'}));
