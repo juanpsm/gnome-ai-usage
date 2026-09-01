@@ -33,18 +33,9 @@ To use the dev environment with all tools, run `nix develop` first.
 make check-pricing
 ```
 
-### Preview the widget
+### Install the GNOME extension locally
 ```bash
-# Planar layout (default)
-make view
-
-# Horizontal layout
-make view-h
-```
-
-### Package for distribution
-```bash
-make pack
+make gnome-install
 ```
 
 ## High-Level Architecture
@@ -60,9 +51,9 @@ Python Backend (package/contents/tools/aiusage)
          │
          ├─────────────────┼────────────────┐
          ▼                 ▼                ▼
-    KDE Plasma          Quickshell      Terminal
-    (QML UI)            (QML UI)        (ai-usage-cli)
-    widgets             hyprland/       renders.py
+      GNOME             Quickshell      Terminal
+   (GJS/St UI)           (QML UI)      (ai-usage-cli)
+  gnome-extension/       hyprland/       render.py
 ```
 
 **Key invariant**: No frontend performs network requests, parses provider responses, or computes quotas. All three map contract fields to their widgets and nothing else — this keeps logic out of duplicate implementations and is verified by contract tests.
@@ -97,18 +88,18 @@ Every provider returns this shape:
 
 ### Frontend Code Paths
 
-**KDE Plasma (package/contents/ui)**
-- `main.qml` — Central component; fetches and routes data to tabs
-- `*Tab.qml` — Individual provider panels (ClaudeTab, OpenAiTab, etc.)
-- `SettingsPanel.qml` — Config UI; persists to plasmoid settings
-- `PanelSlot.qml` — Taskbar indicator (percentage + sparkline)
-- `Format.js` — Shared countdown / formatting logic
-
 **GNOME Shell (gnome-extension/)**
 - `extension.js` — Main entry point; fetches backend and wires popover
 - `prefs.js` — Settings page for GNOME Extensions app
-- `metadata.json` — Extension metadata; targets GNOME 46+
+- `metadata.json` — Extension metadata; targets GNOME 45+
 - `legacy/` — GNOME 42–44 implementation (uses synchronous GJS imports)
+- `utils.js` — Countdown formatting local to this frontend (no chart yet, so no history-merging logic to share)
+
+**Quickshell/Hyprland (hyprland/)**
+- `AiUsageShell.qml` — Central component; fetches and routes data to tabs
+- `*Tab.qml`-equivalents and `SettingsPage.qml` — Config UI
+- `PanelSlot.qml` / `PanelPill.qml` — Taskbar indicator (percentage + sparkline)
+- Imports `package/contents/code/Format.js` and `UsageHistory.js` — shared with no other frontend
 
 **Terminal (package/contents/tools/sh/ai-usage-cli)**
 - Wrapper script that calls the Python backend
@@ -149,14 +140,14 @@ Every provider returns this shape:
    var pct = provider.quotaWindows[0].pct
    ```
 
-2. **Shared format logic** — Countdown arithmetic lives in `package/contents/code/Format.js` so both Plasma and Quickshell render identical timestamps. If you add a format function, add it there first, then import it in the QML.
+2. **Shared format logic (Quickshell only)** — Countdown arithmetic lives in `package/contents/code/Format.js`. The GNOME extension does not import this — it has its own minimal version in `gnome-extension/utils.js` since GJS can't import QML-side JS modules.
 
-3. **Color thresholds** — Defined in `render.py` and mirrored in QML:
+3. **Color thresholds** — Defined in `render.py` and mirrored per-frontend:
    - 0–70%: theme accent (or brand color if enabled)
    - 70–90%: yellow (#f4a460)
    - 90–100%: red (#ff6b6b)
 
-4. **Settings are per-frontend** — Plasma uses `plasmoid.configuration`, GNOME uses GSettings, Quickshell uses the shared JSON config. They don't share settings, but both read provider toggles from the shared config so CLI and Hyprland see the same enabled services.
+4. **Settings are per-frontend** — GNOME uses GSettings, Quickshell uses the shared JSON config. They don't share settings, but both read provider toggles from the shared config so CLI and Hyprland see the same enabled services.
 
 ### Testing
 
@@ -195,17 +186,6 @@ Every provider returns this shape:
 Use `nix develop` to get:
 - Python 3.9+ with ruff (linter/formatter)
 - Node.js (for JS tests)
-- plasmoidviewer (to preview the Plasma widget)
-- jq (for contract test assertions)
+- Qt's QML tooling (for the Quickshell/Hyprland frontend)
 
 Without Nix, you need ruff installed to run `make lint-py`; tests run on any POSIX shell + Node.
-
-### Version Bumping
-
-Run `make tag` to:
-- Prompt for a new semantic version
-- Update `package/metadata.json`
-- Commit and tag the release
-- Push to GitHub
-
-The plasmoid `.plasmoid` archive is built via `make pack` and uploaded to the KDE Store and GitHub Releases.

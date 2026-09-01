@@ -1,7 +1,7 @@
 """Shared settings (provider toggles + API keys).
 
-The Hyprland shell writes the settings file; the Plasma widget passes the same
-values through WIDGET_* environment variables. Environment always wins.
+The Hyprland shell writes the settings file; the GNOME extension passes the
+same values through WIDGET_* environment variables. Environment always wins.
 """
 
 import json

@@ -1,9 +1,9 @@
 """ai-usage-cli — terminal frontend for the shared provider backend.
 
-A third consumer of the contract the Plasma widget and the Quickshell panel
-already render, for people who do not have a panel to put a widget on: Plasma 5
-desktops, status bars (waybar, tmux, i3blocks) via --compact, and headless
-boxes over SSH.
+A third consumer of the contract the GNOME extension and the Quickshell panel
+already render, for people who do not have a panel to put a widget on: desktops
+without either, status bars (waybar, tmux, i3blocks) via --compact, and
+headless boxes over SSH.
 
 Like the QML frontends this does presentation only. Fetching, parsing and quota
 maths stay in the package; the rendering itself is in aiusage.render.
