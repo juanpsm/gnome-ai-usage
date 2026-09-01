@@ -16,6 +16,8 @@ node --test tests/*.test.js        # shared JS code (Format.js, history merging)
 make lint-py            # ruff check + format --check on package/contents/tools/aiusage (needs ruff, or `nix develop`)
 make check-pricing       # diff billing.py pricing tables against live provider pricing pages
 make gnome-install      # install the GNOME Shell extension locally (delegates to gnome-extension/Makefile)
+make gnome-pack         # build ai-usage@juanpsm-<v>-{modern,legacy}.shell-extension.zip (see gnome-extension/PUBLISHING.md)
+make gnome-release      # bump version, tag gnome-v<N>, push — triggers .github/workflows/gnome-release.yml
 
 nix run .#hyprland      # run the Quickshell/Hyprland frontend
 nix run .#cli           # run ai-usage-cli via the flake, no install needed

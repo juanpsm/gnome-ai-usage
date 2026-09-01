@@ -1,4 +1,4 @@
-.PHONY: help gnome-install gnome-pack test lint-py check-pricing
+.PHONY: help gnome-install gnome-pack gnome-release test lint-py check-pricing
 .DEFAULT_GOAL := help
 
 help: ## list targets
@@ -9,6 +9,9 @@ gnome-install: ## install the GNOME Shell extension locally
 
 gnome-pack: ## build the GNOME Shell extension .zip archives
 	@$(MAKE) -C gnome-extension pack
+
+gnome-release: ## bump version, tag, and push — triggers the GitHub release workflow
+	@$(MAKE) -C gnome-extension release
 
 test: ## run the provider backend contract tests
 	@./tests/get-ai-usage.test.sh

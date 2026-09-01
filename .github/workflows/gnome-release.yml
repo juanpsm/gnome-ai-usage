@@ -1,0 +1,53 @@
+name: GNOME Release
+
+on:
+  push:
+    tags:
+      - "gnome-v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install packaging dependencies
+        run: sudo apt-get update && sudo apt-get install -y libglib2.0-bin zip
+
+      - name: Build GNOME Shell extension archives
+        run: make gnome-pack
+
+      - name: Generate release notes
+        id: notes
+        run: |
+          PREV_TAG="$(git tag --sort=-creatordate | grep -E '^gnome-v' | sed -n '2p')"
+          if [ -n "$PREV_TAG" ]; then
+            NOTES="$(git log "${PREV_TAG}..HEAD" --pretty=format:'- %s' --no-merges)"
+          else
+            NOTES="$(git log --pretty=format:'- %s' --no-merges)"
+          fi
+          echo "notes<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$NOTES" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          body: |
+            ## Changes
+            ${{ steps.notes.outputs.notes }}
+
+            ---
+            Download the archive for your shell — `modern` for GNOME 45+,
+            `legacy` for GNOME 42–44 (check with `gnome-shell --version`) —
+            then run:
+            ```
+            gnome-extensions install --force <file>.shell-extension.zip
+            gnome-extensions enable ai-usage@juanpsm
+            ```
+            Log out and back in (or press Alt+F2, `r`, Enter on X11) to load it.
+          files: "*.shell-extension.zip"

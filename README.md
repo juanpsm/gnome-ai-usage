@@ -58,6 +58,17 @@ make gnome-install
 
 Después activá **AI Usage** desde GNOME Extensions.
 
+También podés armar un `.shell-extension.zip` instalable (uno por variante,
+moderna y legacy) sin clonar el repo cada vez:
+
+```bash
+make gnome-pack
+```
+
+Ver [`gnome-extension/PUBLISHING.md`](gnome-extension/PUBLISHING.md) para el
+detalle de qué incluye cada archivo y el checklist para subirlo a
+extensions.gnome.org.
+
 ---
 
 ## Quickshell / Hyprland

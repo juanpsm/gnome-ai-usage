@@ -1,19 +1,27 @@
 # Publishing the GNOME Shell extension
 
-## Release artifacts (GitHub)
+## Cutting a release (GitHub)
 
-Tagging with `./tag.sh` bumps `package/metadata.json` (the plasmoid version
-string) and, in lockstep, the integer `version` in both GNOME
-`metadata.json` files. CI then runs `make gnome-pack` and attaches two
-archives to the GitHub release:
+```sh
+make gnome-release
+```
+
+Bumps the integer `version` in `gnome-extension/metadata.json` and
+`legacy/metadata.json`, commits, tags `gnome-v<N>`, and pushes. Pushing that
+tag triggers `.github/workflows/gnome-release.yml`, which runs
+`make gnome-pack` and publishes a GitHub release with both archives
+attached:
 
 | Archive | GNOME Shell |
 |---|---|
 | `ai-usage@juanpsm-<v>-modern.shell-extension.zip` | 45+ |
 | `ai-usage@juanpsm-<v>-legacy.shell-extension.zip` | 42–44 |
 
-Users install with `gnome-extensions install --force <zip>`, no `make` and no
-clone required.
+Users install either with `gnome-extensions install --force <zip>` — no
+`make`, no clone.
+
+To build the archives locally without cutting a release (e.g. to test one
+before tagging), run `make gnome-pack` directly.
 
 ## extensions.gnome.org (EGO)
 
@@ -26,8 +34,9 @@ Before uploading, check:
 - **One variant per submission.** A zip carries a single `metadata.json`, and
   the two variants use incompatible module systems (ESM vs `imports.gi`).
   Upload the `modern` archive; keep `legacy` as a GitHub-only download.
-- **`version` must be strictly greater** than the published one. `tag.sh`
-  handles this; do not hand-edit it out of order.
+- **`version` must be strictly greater** than the published one.
+  `release.sh` guarantees this for GitHub releases; EGO tracks its own
+  counter separately, so check its last accepted version before uploading.
 - **`shell-version` must list only released GNOME versions.** EGO rejects
   unknown ones. Re-check this list each GNOME cycle.
 - **No downloaded or generated code.** The backend (`backend/sh` +
