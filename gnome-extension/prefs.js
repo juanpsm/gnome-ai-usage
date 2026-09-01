@@ -1,6 +1,25 @@
 import Adw from 'gi://Adw';
+import Gio from 'gi://Gio';
 import Gtk from 'gi://Gtk';
 import {ExtensionPreferences} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
+import {PROVIDER_KEY_HELP_URLS} from './utils.js';
+
+// Settings-key -> "where do I get this" URL. Most of these mirror
+// PROVIDER_KEY_HELP_URLS (keyed by provider id); claude-admin-api-key is its
+// own thing (the org-wide admin key, not a regular Claude login).
+const CREDENTIAL_HELP_URLS = {
+    // Admin Keys lives under a left-nav item in the console, not a confirmed
+    // stable deep link — pointing at the console root rather than guessing.
+    'claude-admin-api-key': 'https://console.anthropic.com',
+    'openai-api-key': PROVIDER_KEY_HELP_URLS.openai,
+    'mistral-api-key': PROVIDER_KEY_HELP_URLS.mistral,
+    'openrouter-api-key': PROVIDER_KEY_HELP_URLS.openrouter,
+    'grok-api-key': PROVIDER_KEY_HELP_URLS.grok,
+    'zai-token': PROVIDER_KEY_HELP_URLS.zai,
+    'github-token': PROVIDER_KEY_HELP_URLS.copilot,
+    'deepseek-api-key': PROVIDER_KEY_HELP_URLS.deepseek,
+    'moonshot-api-key': PROVIDER_KEY_HELP_URLS.kimi,
+};
 
 export default class AiUsagePreferences extends ExtensionPreferences {
     fillPreferencesWindow(window) {
@@ -66,6 +85,17 @@ export default class AiUsagePreferences extends ExtensionPreferences {
             row.connect('changed', () => {
                 settings.set_string(key, row.get_text());
             });
+            const helpUrl = CREDENTIAL_HELP_URLS[key];
+            if (helpUrl) {
+                const helpButton = new Gtk.Button({
+                    icon_name: 'web-browser-symbolic',
+                    valign: Gtk.Align.CENTER,
+                    has_frame: false,
+                    tooltip_text: 'Obtener esta key',
+                });
+                helpButton.connect('clicked', () => Gio.AppInfo.launch_default_for_uri(helpUrl, null));
+                row.add_suffix(helpButton);
+            }
             credsGroup.add(row);
         });
         credsPage.add(credsGroup);

@@ -1,11 +1,11 @@
 """get-ai-usage — the shared provider backend for every frontend of this widget.
 
 This tool owns credential discovery, provider API requests, response parsing,
-quota/percentage maths, reset timestamps and error/stale state. The KDE Plasma
-widget and the Hyprland/Quickshell shell both consume its output and do
-presentation only; see docs/provider-contract.md for the schema.
+quota/percentage maths, reset timestamps and error/stale state. The GNOME
+Shell extension and the Hyprland/Quickshell shell both consume its output and
+do presentation only; see docs/provider-contract.md for the schema.
 
-  get-ai-usage --provider claude          one provider (KDE's active tab)
+  get-ai-usage --provider claude          one provider
   get-ai-usage --provider claude,openai   several providers (active + pinned)
   get-ai-usage --all                      every enabled provider (Hyprland)
   get-ai-usage --normalize < envelope     replay a raw envelope offline (tests)

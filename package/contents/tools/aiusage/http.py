@@ -94,6 +94,33 @@ def fetch_json(url, headers=None, timeout=10, fixture_path=None):
         return HttpResult(0, "")
 
 
+def post_json(url, headers=None, body=b"", timeout=10, fixture_path=None):
+    """Returns an HttpResult for a JSON POST. `fixture_path` replays a
+    recorded response as a 200, same convention as fetch_json."""
+    if fixture_path and os.path.isfile(fixture_path):
+        try:
+            with open(fixture_path) as f:
+                return HttpResult(200, f.read())
+        except OSError:
+            return HttpResult(0, "")
+
+    import urllib.error
+    import urllib.request
+
+    req = urllib.request.Request(url, data=body, headers=headers or {}, method="POST")
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return HttpResult(resp.status, resp.read().decode("utf-8", "replace"))
+    except urllib.error.HTTPError as e:
+        try:
+            body_text = e.read().decode("utf-8", "replace")
+        except Exception:
+            body_text = ""
+        return HttpResult(e.code, body_text)
+    except (urllib.error.URLError, TimeoutError, OSError):
+        return HttpResult(0, "")
+
+
 def as_json(text):
     """Parse JSON, returning None on any failure — mirrors the bash
     as_json/null-on-invalid convention."""

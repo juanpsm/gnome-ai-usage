@@ -13,6 +13,8 @@ from . import config
 from .http import as_json, fetch_json, http_error_text
 from .providers.antigravity import get_antigravity_usage
 from .providers.claude_credentials import get_claude_credentials
+from .providers.claude_oauth import get_access_token as get_claude_access_token
+from .providers.claude_oauth import refresh as refresh_claude_token
 from .providers.codex_rate_limits import get_codex_rate_limits
 from .providers.codex_stats import get_codex_stats
 from .providers.copilot import get_copilot_usage
@@ -65,28 +67,40 @@ def status_json(name, url):
     return cached
 
 
+def _fetch_claude_usage(token):
+    return fetch_json(
+        "https://api.anthropic.com/api/oauth/usage",
+        headers={
+            "Authorization": f"Bearer {token}",
+            "anthropic-beta": "oauth-2025-04-20",
+            "User-Agent": "claude-code/2.1.0",
+        },
+        timeout=12,
+        fixture_path=os.environ.get("CLAUDE_USAGE_RESPONSE_FILE"),
+    )
+
+
 def collect_claude(now):
     creds = get_claude_credentials()
     # ~/.claude/.credentials.json is written by another program and read
     # verbatim, so nothing guarantees these are the shapes we expect.
     oauth = creds.get("claudeAiOauth")
     oauth = oauth if isinstance(oauth, dict) else {}
-    token = str(oauth.get("accessToken") or "")
+    now_ms = int(now * 1000)
+    token = get_claude_access_token(oauth, now_ms)
     admin = str(creds.get("claudeAdminApiKey") or "")
 
     usage = None
     usage_error = ""
     if token:
-        result = fetch_json(
-            "https://api.anthropic.com/api/oauth/usage",
-            headers={
-                "Authorization": f"Bearer {token}",
-                "anthropic-beta": "oauth-2025-04-20",
-                "User-Agent": "claude-code/2.1.0",
-            },
-            timeout=12,
-            fixture_path=os.environ.get("CLAUDE_USAGE_RESPONSE_FILE"),
-        )
+        result = _fetch_claude_usage(token)
+        if result.status == 401:
+            # The token we picked looked valid but wasn't (clock skew, or it
+            # was revoked) — try one forced refresh-and-retry before giving up.
+            refreshed = refresh_claude_token(str(oauth.get("refreshToken") or ""), now_ms)
+            if refreshed:
+                token = refreshed
+                result = _fetch_claude_usage(token)
         if result.status == 200:
             usage = as_json(result.body)
             if usage is None:

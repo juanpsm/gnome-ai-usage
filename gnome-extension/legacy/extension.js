@@ -15,6 +15,26 @@ var UsageUtils = Me.imports.utils;
 
 var PROVIDERS = ['claude', 'antigravity', 'openai', 'kiro', 'mistral', 'openrouter', 'grok', 'zai', 'copilot', 'deepseek', 'kimi'];
 
+function statusDotClass(provider) {
+    if (!provider.ok)
+        return 'ai-usage-status-dot-error';
+    if (provider.stale)
+        return 'ai-usage-status-dot-stale';
+    return 'ai-usage-status-dot';
+}
+
+// OpenRouter reports spend as details.usageUSD; Claude/OpenAI report it as
+// details.organizationUsage.totalCostUSD — same aggregate-cost idea, two
+// different contract shapes (see docs/provider-contract.md).
+function providerCostUSD(provider) {
+    if (!provider.ok)
+        return 0;
+    var details = provider.details || {};
+    if (provider.id === 'openrouter')
+        return Number(details.usageUSD || 0);
+    return Number((details.organizationUsage && details.organizationUsage.totalCostUSD) || 0);
+}
+
 var METER_COLORS = {
     '': [0.384, 0.627, 0.918],
     warning: [0.898, 0.647, 0.039],
@@ -24,16 +44,26 @@ var METER_COLORS = {
 function paintMeter(area, pct) {
     var [width, height] = area.get_surface_size();
     var cr = area.get_context();
+    
+    var y = height / 2;
+    var radius = height / 2;
+    
+    // Draw background bar with rounded caps
+    cr.setLineWidth(height);
+    cr.setLineCap(1); // 1 = CAIRO_LINE_CAP_ROUND
     cr.setSourceRGBA(1, 1, 1, 0.18);
-    cr.rectangle(0, 0, width, height);
-    cr.fill();
+    cr.moveTo(radius, y);
+    cr.lineTo(width - radius, y);
+    cr.stroke();
 
-    var fillWidth = width * Math.max(0, Math.min(100, pct)) / 100;
+    // Draw active fill bar with rounded caps
+    var fillWidth = (width - 2 * radius) * Math.max(0, Math.min(100, pct)) / 100;
     if (fillWidth > 0) {
         var color = METER_COLORS[UsageUtils.meterClass(pct)];
         cr.setSourceRGB(color[0], color[1], color[2]);
-        cr.rectangle(0, 0, fillWidth, height);
-        cr.fill();
+        cr.moveTo(radius, y);
+        cr.lineTo(radius + fillWidth, y);
+        cr.stroke();
     }
     cr.$dispose();
 }
@@ -49,7 +79,7 @@ var UsageMeter = GObject.registerClass(class UsageMeter extends St.Widget {
         this.add_child(header);
 
         var pct = window.pct || 0;
-        var meter = new St.DrawingArea({style_class: 'ai-usage-meter', x_expand: true});
+        var meter = new St.DrawingArea({style_class: 'ai-usage-meter', x_expand: true, height: 8});
         meter.connect('repaint', function (area) { paintMeter(area, pct); });
         this.add_child(meter);
         var reset = UsageUtils.formatReset(window.resetAt);
@@ -59,11 +89,31 @@ var UsageMeter = GObject.registerClass(class UsageMeter extends St.Widget {
 
 var ProviderItem = GObject.registerClass(class ProviderItem extends PopupMenu.PopupBaseMenuItem {
     _init(provider) {
-        super._init({reactive: false, can_focus: false, style_class: 'ai-usage-provider'});
+        var usageUrl = UsageUtils.PROVIDER_USAGE_URLS[provider.id];
+        var styleClass = usageUrl ? 'ai-usage-provider ai-usage-provider-clickable' : 'ai-usage-provider';
+        super._init({reactive: !!usageUrl, can_focus: !!usageUrl, style_class: styleClass});
+        if (usageUrl) {
+            this.connect('activate', function () {
+                Gio.AppInfo.launch_default_for_uri(usageUrl, null);
+            });
+        }
+
         var box = new St.BoxLayout({vertical: true, x_expand: true});
-        var header = new St.BoxLayout({x_expand: true});
+        var header = new St.BoxLayout({x_expand: true, style_class: 'ai-usage-provider-header'});
+
+        var iconFile = Gio.File.new_for_path(GLib.build_filenamev([Me.path, 'icons', provider.icon || 'codex.svg']));
+        if (iconFile.query_exists(null)) {
+            var gicon = new Gio.FileIcon({file: iconFile});
+            var icon = new St.Icon({
+                gicon: gicon,
+                icon_size: 16,
+                style_class: 'ai-usage-provider-icon'
+            });
+            header.add_child(icon);
+        }
+
         header.add_child(new St.Label({text: provider.label || provider.id, x_expand: true, style_class: 'ai-usage-provider-name'}));
-        header.add_child(new St.Label({text: provider.ok ? 'Conectado' : (provider.error || 'No disponible'), style_class: 'ai-usage-status'}));
+        header.add_child(new St.Widget({style_class: statusDotClass(provider), y_align: Clutter.ActorAlign.CENTER}));
         box.add_child(header);
 
         var windows = provider.quotaWindows || [];
@@ -71,6 +121,20 @@ var ProviderItem = GObject.registerClass(class ProviderItem extends PopupMenu.Po
             windows.forEach(function (window) { box.add_child(new UsageMeter(window)); });
         } else {
             box.add_child(new St.Label({text: provider.error || 'Sin datos de cuota', style_class: 'ai-usage-status'}));
+        }
+
+        // Per-model cost breakdown, when the backend has priced any models
+        // for this provider (currently Claude and OpenAI).
+        var models = provider.details && provider.details.organizationUsage && provider.details.organizationUsage.models;
+        if (models && typeof models === 'object') {
+            Object.keys(models)
+                .map(function (name) { return [name, models[name]]; })
+                .filter(function (entry) { return entry[1] && entry[1].priced && Number(entry[1].cost_usd) > 0; })
+                .sort(function (a, b) { return Number(b[1].cost_usd) - Number(a[1].cost_usd); })
+                .forEach(function (entry) {
+                    var text = entry[0] + ' — $' + Number(entry[1].cost_usd).toFixed(2);
+                    box.add_child(new St.Label({text: text, style_class: 'ai-usage-model-row'}));
+                });
         }
         this.add_child(box);
     }
@@ -175,10 +239,48 @@ var AiUsageExtension = class {
         this._indicatorLabel.text = (selected ? selected.label : 'AI') + ' ' + Math.round(value) + '%';
         this._indicator.menu.removeAll();
         this._providers.forEach(function (provider) { this._indicator.menu.addMenuItem(new ProviderItem(provider)); }.bind(this));
-        var refresh = new PopupMenu.PopupMenuItem('Actualizar');
-        refresh.connect('activate', this._refresh.bind(this));
+        var totalCost = this._providers.reduce(function (sum, p) { return sum + providerCostUSD(p); }, 0);
+        if (totalCost > 0)
+            this._indicator.menu.addMenuItem(this._buildCostFooter(totalCost));
         this._indicator.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-        this._indicator.menu.addMenuItem(refresh);
+        this._indicator.menu.addMenuItem(this._buildToolbar());
+    }
+
+    _buildCostFooter(totalCost) {
+        var item = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false, style_class: 'ai-usage-cost-footer-item'});
+        item.add_child(new St.Label({text: 'Total: $' + totalCost.toFixed(2), style_class: 'ai-usage-cost-footer', x_expand: true}));
+        return item;
+    }
+
+    _buildToolbar() {
+        var row = new St.BoxLayout({style_class: 'ai-usage-toolbar', x_expand: true});
+        row.add_child(new St.Widget({x_expand: true}));
+        row.add_child(this._makeIconButton('view-refresh-symbolic', this._refresh.bind(this)));
+        row.add_child(this._makeIconButton('preferences-system-symbolic', this._openSettings.bind(this)));
+
+        var item = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false, style_class: 'ai-usage-toolbar-item'});
+        item.add_child(row);
+        return item;
+    }
+
+    _makeIconButton(iconName, onClick) {
+        var button = new St.Button({
+            style_class: 'ai-usage-icon-button',
+            can_focus: true,
+            x_align: Clutter.ActorAlign.CENTER,
+            y_align: Clutter.ActorAlign.CENTER,
+            child: new St.Icon({icon_name: iconName, icon_size: 16}),
+        });
+        button.connect('clicked', onClick);
+        return button;
+    }
+
+    _openSettings() {
+        try {
+            Gio.Subprocess.new(['gnome-extensions', 'prefs', Me.metadata.uuid], Gio.SubprocessFlags.NONE);
+        } catch (error) {
+            logError(error);
+        }
     }
 
     _renderError(message) {

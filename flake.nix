@@ -1,62 +1,19 @@
 {
-  description = "AI usage widget for KDE Plasma 6 and Hyprland/Quickshell";
+  description = "AI usage indicator for GNOME Shell and Hyprland/Quickshell";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
   outputs = { self, nixpkgs }:
     let
       forAllSystems = f: nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-linux" ] (system: f system);
-      metadata = builtins.fromJSON (builtins.readFile ./package/metadata.json);
+      version = (builtins.fromJSON (builtins.readFile ./gnome-extension/metadata.json)).version;
     in {
       packages = forAllSystems (system:
         let pkgs = import nixpkgs { inherit system; };
         in {
-          default = pkgs.stdenvNoCC.mkDerivation {
-            pname = "ai-usage-widget";
-            version = metadata.KPlugin.Version;
-            src = ./package;
-
-            dontConfigure = true;
-            dontBuild = true;
-
-            installPhase = ''
-              runHook preInstall
-              
-              # Install plasmoid package
-              root=$out/share/plasma/plasmoids/org.muddyblack.aiUsageWidget
-              mkdir -p "$root"
-              cp -r . "$root/"
-
-              # The shell tools resolve Python from PATH, but plasmashell inherits the
-              # systemd user session's PATH, which on NixOS has no Python at all — the
-              # widget then renders "python3 missing" for every provider. Pin the
-              # interpreter so the installed plasmoid is self-contained; this also puts
-              # python3 in the closure so it cannot be garbage-collected away.
-              # $PYTHON3 still wins at runtime, the PATH candidates still act as
-              # fallbacks, and --replace-fail turns a drifted line into a build error
-              # rather than a silently unpatched script.
-              substituteInPlace "$root/contents/tools/sh/python-interp.sh" \
-                --replace-fail 'PY_DEFAULT="python3"' \
-                               'PY_DEFAULT="${pkgs.python3}/bin/python3"'
-
-              # Register icon in hicolor theme so Plasma Widget Explorer picks it up
-              mkdir -p "$out/share/icons/hicolor/scalable/apps"
-              cp contents/icons/org.muddyblack.aiUsageWidget.svg "$out/share/icons/hicolor/scalable/apps/org.muddyblack.aiUsageWidget.svg"
-
-              runHook postInstall
-            '';
-
-            meta = with pkgs.lib; {
-              description = "Multi-provider AI usage widget for KDE Plasma 6";
-              license = licenses.mit;
-              platforms = platforms.linux;
-              homepage = "https://github.com/Muddyblack/kde-ai-usage";
-            };
-          };
-
           tray-helper = pkgs.stdenv.mkDerivation {
             pname = "ai-usage-tray";
-            version = metadata.KPlugin.Version;
+            version = toString version;
             src = ./hyprland/tray;
             nativeBuildInputs = with pkgs; [ cmake ninja qt6.wrapQtAppsHook ];
             buildInputs = with pkgs; [ qt6.qtbase ];
@@ -73,37 +30,11 @@
             # xdg-desktop-portal resolves this entry in the portal daemon's
             # environment, where a flake-only Quickshell is not on PATH.
             exec = "${pkgs.quickshell}/bin/qs";
-            icon = "org.muddyblack.aiUsageWidget";
             terminal = false;
             noDisplay = true;
             categories = [ "Utility" ];
           };
         in {
-          view = {
-            type = "app";
-            program = toString (pkgs.writeShellScript "view" ''
-              if [ ! -f "$PWD/package/metadata.json" ]; then
-                echo "error: no plasmoid at $PWD/package" >&2
-                echo "  'nix run .#view' previews your working copy, so run it from the repo root." >&2
-                exit 1
-              fi
-              exec nix shell nixpkgs#kdePackages.plasma-sdk nixpkgs#kdePackages.plasma-desktop -c plasmoidviewer \
-                -a "$PWD/package" -f "''${1:-planar}"
-            '');
-          };
-          pack = {
-            type = "app";
-            program = toString (pkgs.writeShellScript "pack" ''
-              set -euo pipefail
-              here="$PWD"
-              ver="$(grep -oE '"Version":[[:space:]]*"[^"]+"' "$here/package/metadata.json" | head -1 | sed -E 's/.*"([^"]+)"$/\1/')"
-              name="$(basename "$here")"
-              out="$here/$name-$ver.plasmoid"
-              rm -f "$out"
-              (cd "$here/package" && ${pkgs.zip}/bin/zip -r "$out" . -x '*.swp' '*~')
-              echo "wrote $out"
-            '');
-          };
           cli = {
             type = "app";
             program = toString (pkgs.writeShellScript "ai-usage-cli" ''
@@ -147,17 +78,12 @@
             name = "ai-usage-widget-dev";
             packages = with pkgs; [
               qt6.qtdeclarative
-              kdePackages.kpackage
-              kdePackages.plasma-sdk
-              pre-commit
-              zip
               python3
               ruff
             ];
             shellHook = ''
-              pre-commit install -f --install-hooks
               echo "ai-usage-widget dev shell ready"
-              echo "  make help        — list targets (view, install, pack, tag)"
+              echo "  make help        — list targets"
             '';
           };
         });

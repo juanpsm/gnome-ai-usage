@@ -36,3 +36,37 @@ export function providerPercent(provider) {
         return Number(provider?.summary?.pct || 0);
     return Math.max(...windows.map(w => Number(w.pct || 0)));
 }
+
+// Where clicking a provider's row should send you. Verified against each
+// provider's own docs/pages (not guessed) as of 2026-08 — still worth
+// re-checking occasionally, since these sites redesign.
+export const PROVIDER_USAGE_URLS = {
+    claude: 'https://claude.ai/settings/usage',
+    openai: 'https://platform.openai.com/settings/organization/usage',
+    copilot: 'https://github.com/settings/billing',
+    mistral: 'https://console.mistral.ai',
+    openrouter: 'https://openrouter.ai/activity',
+    deepseek: 'https://platform.deepseek.com/usage',
+    // moonshot.ai's website redirects to kimi.ai now; the API (api.moonshot.ai)
+    // that get-antigravity-usage/moonshot.py actually calls hasn't moved.
+    kimi: 'https://platform.kimi.ai/console/account',
+    grok: 'https://console.x.ai',
+    zai: 'https://z.ai/manage-apikey/apikey-list',
+    // antigravity: no web usage page — it's shown inside the IDE itself
+    // (Settings > Advanced Settings > Models).
+    // kiro: no web usage page either — it's a local desktop IDE state snapshot.
+};
+
+// Where to get an API key for each provider that needs one pasted into
+// settings. Same verified-as-of-2026-08 caveat as PROVIDER_USAGE_URLS.
+export const PROVIDER_KEY_HELP_URLS = {
+    openai: 'https://platform.openai.com/settings/organization/api-keys',
+    mistral: 'https://console.mistral.ai/home?workspace_dialog=apiKeys',
+    openrouter: 'https://openrouter.ai/settings/keys',
+    grok: 'https://console.x.ai/team/default/api-keys',
+    zai: 'https://z.ai/manage-apikey/apikey-list',
+    copilot: 'https://github.com/settings/personal-access-tokens/new',
+    deepseek: 'https://platform.deepseek.com/api_keys',
+    kimi: 'https://platform.kimi.ai/console/api-keys',
+    // claude, antigravity, kiro: no pasted key — nothing to link here.
+};

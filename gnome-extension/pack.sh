@@ -8,8 +8,8 @@ repo_root="$(cd "$here/.." && pwd)"
 out_dir="$(cd "${1:-$repo_root}" && pwd)"
 uuid="ai-usage@juanpsm"
 
-version="$(grep -oE '"Version":[[:space:]]*"[^"]+"' "$repo_root/package/metadata.json" \
-    | head -1 | sed -E 's/.*"([^"]+)"$/\1/')"
+version="$(grep -oE '"version"[[:space:]]*:[[:space:]]*[0-9]+' "$here/metadata.json" \
+    | head -1 | grep -oE '[0-9]+$')"
 
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT

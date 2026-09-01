@@ -48,5 +48,5 @@ fi
 PKG_TOOLS="$(cd "$_SH_DIR/.." && pwd)"
 export PYTHONPATH="$PKG_TOOLS${PYTHONPATH:+:$PYTHONPATH}"
 
-# -B: never write __pycache__ into an installed plasmoid.
+# -B: never write __pycache__ into an installed copy of the backend.
 exec "$PY" -B -m aiusage.cli "$@"

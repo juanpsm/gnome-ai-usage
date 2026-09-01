@@ -1,20 +1,168 @@
 /* exported init, buildPrefsWidget */
 
+var Gio = imports.gi.Gio;
 var Gtk = imports.gi.Gtk;
 var ExtensionUtils = imports.misc.extensionUtils;
+var Me = ExtensionUtils.getCurrentExtension();
+var UsageUtils = Me.imports.utils;
+
+// Settings-key -> "where do I get this" URL. Most of these mirror
+// UsageUtils.PROVIDER_KEY_HELP_URLS (keyed by provider id); claude-admin-api-key
+// is its own thing (the org-wide admin key, not a regular Claude login).
+var CREDENTIAL_HELP_URLS = {
+    // Admin Keys lives under a left-nav item in the console, not a confirmed
+    // stable deep link — pointing at the console root rather than guessing.
+    'claude-admin-api-key': 'https://console.anthropic.com',
+    'openai-api-key': UsageUtils.PROVIDER_KEY_HELP_URLS.openai,
+    'mistral-api-key': UsageUtils.PROVIDER_KEY_HELP_URLS.mistral,
+    'openrouter-api-key': UsageUtils.PROVIDER_KEY_HELP_URLS.openrouter,
+    'grok-api-key': UsageUtils.PROVIDER_KEY_HELP_URLS.grok,
+    'zai-token': UsageUtils.PROVIDER_KEY_HELP_URLS.zai,
+    'github-token': UsageUtils.PROVIDER_KEY_HELP_URLS.copilot,
+    'deepseek-api-key': UsageUtils.PROVIDER_KEY_HELP_URLS.deepseek,
+    'moonshot-api-key': UsageUtils.PROVIDER_KEY_HELP_URLS.kimi,
+};
 
 function init() {
     // Preferences initialization (unused in this extension but required by GNOME Shell < 45)
 }
 
+function createListBoxPage() {
+    var listBox = new Gtk.ListBox({
+        selection_mode: Gtk.SelectionMode.NONE,
+        show_separators: true,
+        margin_top: 12,
+        margin_bottom: 12,
+        margin_start: 12,
+        margin_end: 12
+    });
+    return listBox;
+}
+
+function wrapInScroll(child) {
+    var scroll = new Gtk.ScrolledWindow({
+        hscrollbar_policy: Gtk.PolicyType.NEVER,
+        vscrollbar_policy: Gtk.PolicyType.AUTOMATIC
+    });
+    scroll.set_child(child);
+    return scroll;
+}
+
+function addSwitchRow(listBox, labelText, active, callback) {
+    var row = new Gtk.ListBoxRow({
+        activatable: false
+    });
+    var box = new Gtk.Box({
+        orientation: Gtk.Orientation.HORIZONTAL,
+        spacing: 12,
+        margin_top: 8,
+        margin_bottom: 8,
+        margin_start: 12,
+        margin_end: 12
+    });
+    var label = new Gtk.Label({label: labelText, xalign: 0, hexpand: true});
+    var toggle = new Gtk.Switch({active: active, valign: Gtk.Align.CENTER});
+    toggle.connect('notify::active', callback);
+    
+    box.append(label);
+    box.append(toggle);
+    row.set_child(box);
+    listBox.append(row);
+}
+
+function addEntryRow(listBox, labelText, text, visibility, placeholder, callback, helpUrl) {
+    var row = new Gtk.ListBoxRow({
+        activatable: false
+    });
+    var box = new Gtk.Box({
+        orientation: Gtk.Orientation.HORIZONTAL,
+        spacing: 12,
+        margin_top: 8,
+        margin_bottom: 8,
+        margin_start: 12,
+        margin_end: 12
+    });
+    var label = new Gtk.Label({label: labelText, xalign: 0, hexpand: true});
+    var entry = new Gtk.Entry({text: text, visibility: visibility, placeholder_text: placeholder || '', valign: Gtk.Align.CENTER, width_request: 220});
+    entry.connect('changed', callback);
+
+    box.append(label);
+    if (helpUrl) {
+        var helpButton = new Gtk.Button({
+            icon_name: 'web-browser-symbolic',
+            valign: Gtk.Align.CENTER,
+            has_frame: false,
+            tooltip_text: 'Obtener esta key'
+        });
+        helpButton.connect('clicked', function () {
+            Gio.AppInfo.launch_default_for_uri(helpUrl, null);
+        });
+        box.append(helpButton);
+    }
+    box.append(entry);
+    row.set_child(box);
+    listBox.append(row);
+}
+
+function addSpinRow(listBox, labelText, adjustment, callback) {
+    var row = new Gtk.ListBoxRow({
+        activatable: false
+    });
+    var box = new Gtk.Box({
+        orientation: Gtk.Orientation.HORIZONTAL,
+        spacing: 12,
+        margin_top: 8,
+        margin_bottom: 8,
+        margin_start: 12,
+        margin_end: 12
+    });
+    var label = new Gtk.Label({label: labelText, xalign: 0, hexpand: true});
+    var spin = new Gtk.SpinButton({adjustment: adjustment, numeric: true, valign: Gtk.Align.CENTER});
+    spin.connect('value-changed', callback);
+    
+    box.append(label);
+    box.append(spin);
+    row.set_child(box);
+    listBox.append(row);
+}
+
+function addComboRow(listBox, labelText, modes, activeId, callback) {
+    var row = new Gtk.ListBoxRow({
+        activatable: false
+    });
+    var box = new Gtk.Box({
+        orientation: Gtk.Orientation.HORIZONTAL,
+        spacing: 12,
+        margin_top: 8,
+        margin_bottom: 8,
+        margin_start: 12,
+        margin_end: 12
+    });
+    var label = new Gtk.Label({label: labelText, xalign: 0, hexpand: true});
+    var combo = new Gtk.ComboBoxText({valign: Gtk.Align.CENTER});
+    modes.forEach(function (m) {
+        combo.append(m[0], m[1]);
+    });
+    combo.set_active_id(activeId);
+    combo.connect('changed', callback);
+    
+    box.append(label);
+    box.append(combo);
+    row.set_child(box);
+    listBox.append(row);
+}
+
 function buildPrefsWidget() {
     var settings = ExtensionUtils.getSettings();
-    var notebook = new Gtk.Notebook();
+    var notebook = new Gtk.Notebook({
+        hexpand: true,
+        vexpand: true
+    });
+    notebook.set_show_border(false);
 
     // ── PAGE 1: PROVIDERS ──
-    var providersBox = new Gtk.Box({orientation: Gtk.Orientation.VERTICAL, spacing: 8, margin_top: 12, margin_bottom: 12, margin_start: 12, margin_end: 12});
-    
-    var providersList = [
+    var providersList = createListBoxPage();
+    var providers = [
         ['claude', 'Claude'],
         ['antigravity', 'Gemini / Antigravity'],
         ['openai', 'OpenAI / Codex'],
@@ -28,28 +176,18 @@ function buildPrefsWidget() {
         ['kimi', 'Kimi / Moonshot AI']
     ];
 
-    providersList.forEach(function (entry) {
-        var row = new Gtk.Box({orientation: Gtk.Orientation.HORIZONTAL, spacing: 12});
-        var label = new Gtk.Label({label: entry[1], xalign: 0, hexpand: true});
-        var toggle = new Gtk.Switch({active: settings.get_strv('enabled-providers').indexOf(entry[0]) !== -1});
-        toggle.connect('notify::active', function () {
+    providers.forEach(function (entry) {
+        addSwitchRow(providersList, entry[1], settings.get_strv('enabled-providers').indexOf(entry[0]) !== -1, function (toggle) {
             var enabled = settings.get_strv('enabled-providers').filter(function (id) { return id !== entry[0]; });
             if (toggle.active)
                 enabled.push(entry[0]);
             settings.set_strv('enabled-providers', enabled);
         });
-        row.append(label);
-        row.append(toggle);
-        providersBox.append(row);
     });
-
-    var providersScroll = new Gtk.ScrolledWindow({hscrollbar_policy: Gtk.PolicyType.NEVER, vscrollbar_policy: Gtk.PolicyType.AUTOMATIC});
-    providersScroll.set_child(providersBox);
-    notebook.append_page(providersScroll, new Gtk.Label({label: 'Proveedores'}));
+    notebook.append_page(wrapInScroll(providersList), new Gtk.Label({label: 'Proveedores'}));
 
     // ── PAGE 2: CREDENTIALS ──
-    var credsBox = new Gtk.Box({orientation: Gtk.Orientation.VERTICAL, spacing: 10, margin_top: 12, margin_bottom: 12, margin_start: 12, margin_end: 12});
-    
+    var credsList = createListBoxPage();
     var credentialsFields = [
         ['claude-admin-api-key', 'Claude Admin API Key'],
         ['openai-api-key', 'OpenAI API Key'],
@@ -63,54 +201,31 @@ function buildPrefsWidget() {
     ];
 
     credentialsFields.forEach(function (field) {
-        var row = new Gtk.Box({orientation: Gtk.Orientation.VERTICAL, spacing: 4});
-        var label = new Gtk.Label({label: field[1], xalign: 0});
-        var entry = new Gtk.Entry({text: settings.get_string(field[0]), visibility: false});
-        entry.connect('changed', function () {
+        addEntryRow(credsList, field[1], settings.get_string(field[0]), false, 'Ingresa la clave o token', function (entry) {
             settings.set_string(field[0], entry.text);
-        });
-        row.append(label);
-        row.append(entry);
-        credsBox.append(row);
+        }, CREDENTIAL_HELP_URLS[field[0]]);
     });
-
-    var credsScroll = new Gtk.ScrolledWindow({hscrollbar_policy: Gtk.PolicyType.NEVER, vscrollbar_policy: Gtk.PolicyType.AUTOMATIC});
-    credsScroll.set_child(credsBox);
-    notebook.append_page(credsScroll, new Gtk.Label({label: 'Credenciales'}));
+    notebook.append_page(wrapInScroll(credsList), new Gtk.Label({label: 'Credenciales'}));
 
     // ── PAGE 3: ADVANCED OPTIONS ──
-    var optsBox = new Gtk.Box({orientation: Gtk.Orientation.VERTICAL, spacing: 12, margin_top: 12, margin_bottom: 12, margin_start: 12, margin_end: 12});
+    var optsList = createListBoxPage();
 
     // Refresh interval
-    var intervalRow = new Gtk.Box({orientation: Gtk.Orientation.HORIZONTAL, spacing: 12});
-    intervalRow.append(new Gtk.Label({label: 'Intervalo de actualización (segundos)', xalign: 0, hexpand: true}));
-    var interval = new Gtk.SpinButton({adjustment: new Gtk.Adjustment({lower: 60, upper: 1800, step_increment: 60, value: settings.get_uint('refresh-interval')}), numeric: true});
-    interval.connect('value-changed', function () { settings.set_uint('refresh-interval', interval.value); });
-    intervalRow.append(interval);
-    optsBox.append(intervalRow);
+    addSpinRow(optsList, 'Intervalo de actualización (segundos)', new Gtk.Adjustment({lower: 60, upper: 1800, step_increment: 60, value: settings.get_uint('refresh-interval')}), function (spin) {
+        settings.set_uint('refresh-interval', spin.value);
+    });
 
     // Copilot quota
-    var quotaRow = new Gtk.Box({orientation: Gtk.Orientation.HORIZONTAL, spacing: 12});
-    quotaRow.append(new Gtk.Label({label: 'Cuota de GitHub Copilot', xalign: 0, hexpand: true}));
-    var quota = new Gtk.SpinButton({adjustment: new Gtk.Adjustment({lower: 1, upper: 100000, step_increment: 100, value: settings.get_int('copilot-quota')}), numeric: true});
-    quota.connect('value-changed', function () { settings.set_int('copilot-quota', quota.value); });
-    quotaRow.append(quota);
-    optsBox.append(quotaRow);
+    addSpinRow(optsList, 'Cuota de GitHub Copilot', new Gtk.Adjustment({lower: 1, upper: 100000, step_increment: 100, value: settings.get_int('copilot-quota')}), function (spin) {
+        settings.set_int('copilot-quota', spin.value);
+    });
 
     // Python Path
-    var pythonRow = new Gtk.Box({orientation: Gtk.Orientation.VERTICAL, spacing: 4});
-    pythonRow.append(new Gtk.Label({label: 'Ruta personalizada de Python', xalign: 0}));
-    var pythonEntry = new Gtk.Entry({text: settings.get_string('python-path'), placeholder_text: 'Ej. /usr/bin/python3 o vacío'});
-    pythonEntry.connect('changed', function () {
-        settings.set_string('python-path', pythonEntry.text);
+    addEntryRow(optsList, 'Ruta de Python personalizada', settings.get_string('python-path'), true, 'Ej. /usr/bin/python3 o vacío', function (entry) {
+        settings.set_string('python-path', entry.text);
     });
-    pythonRow.append(pythonEntry);
-    optsBox.append(pythonRow);
 
     // Indicator mode
-    var indicatorRow = new Gtk.Box({orientation: Gtk.Orientation.HORIZONTAL, spacing: 12});
-    indicatorRow.append(new Gtk.Label({label: 'Indicador del panel', xalign: 0, hexpand: true}));
-    var indicatorCombo = new Gtk.ComboBoxText();
     var modes = [
         ['aggregate', 'Resumen'],
         ['claude', 'Claude'],
@@ -125,23 +240,15 @@ function buildPrefsWidget() {
         ['deepseek', 'DeepSeek'],
         ['kimi', 'Kimi / Moonshot AI']
     ];
-    modes.forEach(function (m) {
-        indicatorCombo.append(m[0], m[1]);
-    });
-    indicatorCombo.set_active_id(settings.get_string('indicator-mode') || 'aggregate');
-    indicatorCombo.connect('changed', function () {
-        var id = indicatorCombo.get_active_id();
+    addComboRow(optsList, 'Indicador del panel', modes, settings.get_string('indicator-mode') || 'aggregate', function (combo) {
+        var id = combo.get_active_id();
         if (id) {
             settings.set_string('indicator-mode', id);
         }
     });
-    indicatorRow.append(indicatorCombo);
-    optsBox.append(indicatorRow);
 
-    var optsScroll = new Gtk.ScrolledWindow({hscrollbar_policy: Gtk.PolicyType.NEVER, vscrollbar_policy: Gtk.PolicyType.AUTOMATIC});
-    optsScroll.set_child(optsBox);
-    notebook.append_page(optsScroll, new Gtk.Label({label: 'Opciones'}));
+    notebook.append_page(wrapInScroll(optsList), new Gtk.Label({label: 'Opciones'}));
 
-    notebook.set_size_request(450, 400);
+    notebook.set_size_request(500, 480);
     return notebook;
 }

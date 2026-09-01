@@ -107,11 +107,11 @@ fi
 
 # The aiusage package lives one directory up from this script (tools/aiusage,
 # this script is tools/sh/get-ai-usage). `python3 -m aiusage` resolves the
-# module from cwd or PYTHONPATH, and Plasma's executable DataEngine sets
-# neither, so it must be exported explicitly here.
+# module from cwd or PYTHONPATH, and the frontends that spawn this script
+# (GNOME's Gio.Subprocess, Quickshell) set neither, so it must be exported
+# explicitly here.
 PKG_TOOLS="$(cd "$_SH_DIR/.." && pwd)"
 export PYTHONPATH="$PKG_TOOLS${PYTHONPATH:+:$PYTHONPATH}"
 
-# -B: never write __pycache__ into the installed plasmoid — `make pack` only
-# excludes *.swp and *~, so stray bytecode would otherwise ship in the zip.
+# -B: never write __pycache__ into an installed copy of the backend.
 exec "$PY" -B -m aiusage "$@"
