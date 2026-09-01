@@ -87,8 +87,11 @@
     margin-bottom: 4px;
 }
 
-/* ─ Usage bar — gap before the reset text below it ─ */
+/* ─ Usage bar — hand-drawn on a DrawingArea (St has no level-bar widget),
+   so height needs to be explicit here instead of coming from the widget. ─ */
 .ai-usage-meter {
+    height: 7px;
+    border-radius: 4px;
     margin-bottom: 6px;
 }
 
