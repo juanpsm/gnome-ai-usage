@@ -16,8 +16,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install packaging dependencies
+        run: sudo apt-get update && sudo apt-get install -y libglib2.0-bin zip
+
       - name: Build .plasmoid
         run: make pack
+
+      - name: Build GNOME Shell extension archives
+        run: make gnome-pack
 
       - name: Get version and artifact path
         id: info
@@ -26,6 +32,7 @@ jobs:
           NAME="$(basename "$PWD")"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "artifact=${NAME}-${VERSION}.plasmoid" >> "$GITHUB_OUTPUT"
+          echo "gnome_artifact=ai-usage@juanpsm-${VERSION}-modern.shell-extension.zip" >> "$GITHUB_OUTPUT"
 
       - name: Generate release notes
         id: notes
@@ -49,8 +56,20 @@ jobs:
             ${{ steps.notes.outputs.notes }}
 
             ---
-            Install by downloading the `.plasmoid` file and running:
+            ### KDE Plasma
+            Download the `.plasmoid` file and run:
             ```
             plasmapkg2 -i ${{ steps.info.outputs.artifact }}
             ```
-          files: ${{ steps.info.outputs.artifact }}
+
+            ### GNOME Shell
+            Download the archive for your shell — `modern` for GNOME 45+,
+            `legacy` for GNOME 42–44 (`gnome-shell --version`) — then run:
+            ```
+            gnome-extensions install --force ${{ steps.info.outputs.gnome_artifact }}
+            gnome-extensions enable ai-usage@juanpsm
+            ```
+            Log out and back in (or press Alt+F2, `r`, Enter on X11) to load it.
+          files: |
+            ${{ steps.info.outputs.artifact }}
+            *.shell-extension.zip

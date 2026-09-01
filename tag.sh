@@ -20,6 +20,13 @@ done
 METADATA_PATH="package/metadata.json"
 METADATA_FILE="$HERE/$METADATA_PATH"
 
+# GNOME Shell requires an integer "version" it can order; extensions.gnome.org
+# refuses an upload whose version is not greater than the published one.
+GNOME_METADATA_PATHS=(
+    "gnome-extension/metadata.json"
+    "gnome-extension/legacy/metadata.json"
+)
+
 if [ ! -f "$METADATA_FILE" ]; then
     echo "Error: package/metadata.json not found!" >&2
     exit 1
@@ -31,6 +38,21 @@ cd "$HERE"
 
 METADATA_BUMP_PENDING=false
 METADATA_STAGED_BY_RELEASE=false
+GNOME_VERSION_FROM=""
+GNOME_VERSION_TO=""
+
+gnome_metadata_version() {
+    grep -oE '"version"[[:space:]]*:[[:space:]]*[0-9]+' "$HERE/$1" \
+        | head -1 | grep -oE '[0-9]+$'
+}
+
+set_gnome_metadata_version() {
+    local from="$1" to="$2" path
+    for path in "${GNOME_METADATA_PATHS[@]}"; do
+        [[ -f "$HERE/$path" ]] || continue
+        sed -i -E "s/(\"version\"[[:space:]]*:[[:space:]]*)${from}/\1${to}/" "$HERE/$path"
+    done
+}
 
 # Offer to undo only the version change made by this run. Other edits in
 # metadata.json are preserved.
@@ -51,8 +73,12 @@ offer_metadata_rollback() {
     fi
 
     sed -i "s/\"Version\": \"${NEW_VERSION}\"/\"Version\": \"${CURRENT_VERSION}\"/" "$METADATA_FILE"
+    if [[ -n "$GNOME_VERSION_FROM" ]]; then
+        set_gnome_metadata_version "$GNOME_VERSION_TO" "$GNOME_VERSION_FROM"
+        echo "Restored GNOME metadata version → ${GNOME_VERSION_FROM}"
+    fi
     if [[ "$METADATA_STAGED_BY_RELEASE" == true ]]; then
-        git add -u -- "$METADATA_PATH"
+        git add -u -- "$METADATA_PATH" "${GNOME_METADATA_PATHS[@]}"
     fi
     METADATA_BUMP_PENDING=false
     echo "Restored metadata.json → ${CURRENT_VERSION}"
@@ -216,6 +242,19 @@ sed -i "s/\"Version\": \"${CURRENT_VERSION}\"/\"Version\": \"${NEW_VERSION}\"/" 
 echo "Updated metadata.json → ${NEW_VERSION}"
 if [[ "$NEW_VERSION" != "$CURRENT_VERSION" ]]; then
     METADATA_BUMP_PENDING=true
+fi
+
+# Bump the GNOME extension version integer in lockstep, so every release ships a
+# strictly increasing version to extensions.gnome.org.
+if [[ "$NEW_VERSION" != "$CURRENT_VERSION" ]]; then
+    GNOME_VERSION_FROM="$(gnome_metadata_version "${GNOME_METADATA_PATHS[0]}")"
+    if [[ -z "$GNOME_VERSION_FROM" ]]; then
+        echo "Error: could not read \"version\" from ${GNOME_METADATA_PATHS[0]}" >&2
+        exit 1
+    fi
+    GNOME_VERSION_TO="$((GNOME_VERSION_FROM + 1))"
+    set_gnome_metadata_version "$GNOME_VERSION_FROM" "$GNOME_VERSION_TO"
+    echo "Updated GNOME metadata version → ${GNOME_VERSION_TO}"
 fi
 
 # ── commit, tag, push ─────────────────────────────────────────────────────────

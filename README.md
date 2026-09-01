@@ -10,6 +10,7 @@
     <img src="https://img.shields.io/badge/KDE_Store-Download-1d99f3?style=for-the-badge&logo=kde&logoColor=white" alt="KDE Store" />
   </a>
   <img src="https://img.shields.io/badge/KDE_Plasma-6.0%2B-1d99f3?style=for-the-badge&logo=kde&logoColor=white" alt="KDE Plasma 6.0+" />
+  <img src="https://img.shields.io/badge/GNOME_Shell-42%2B-4a86cf?style=for-the-badge&logo=gnome&logoColor=white" alt="GNOME Shell 42+" />
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" alt="License: MIT" />
   </a>
@@ -44,19 +45,42 @@
   <img src="./readme/settings.svg?v=10" alt="Settings panel" width="340" valign="top"/>
 </p>
 
-A KDE Plasma 6 panel widget for tracking AI API quota usage across multiple services. Monitor your **Claude** subscription windows and local activity stats, **Antigravity/Google AI Studio**, **OpenAI API and Codex plan limits**, **Grok CLI**, **Kiro**, **Mistral AI**, **OpenRouter**, **Z.AI**, **GitHub Copilot**, **DeepSeek**, and **Kimi / Moonshot AI** usage or balance at a glance with animated segmented bars, live countdown timers, account status, and per-model breakdowns.
+A panel widget for tracking AI API quota usage across multiple services, available for **both KDE Plasma 6 and GNOME Shell**. One shared Python backend drives a Plasma 6 plasmoid and a GNOME Shell extension, so you get the same providers and the same readouts on either desktop. Monitor your **Claude** subscription windows and local activity stats, **Antigravity/Google AI Studio**, **OpenAI API and Codex plan limits**, **Grok CLI**, **Kiro**, **Mistral AI**, **OpenRouter**, **Z.AI**, **GitHub Copilot**, **DeepSeek**, and **Kimi / Moonshot AI** usage or balance at a glance with animated segmented bars, live countdown timers, account status, and per-model breakdowns.
 
 ## GNOME Shell extension
 
-This fork also includes a GNOME Shell extension in [`gnome-extension/`](gnome-extension/). It reuses the Python backend and currently shows Claude, OpenAI/Codex, GitHub Copilot, and Gemini/Antigravity in a panel indicator and popover. Providers with multiple quota windows, such as Claude, show one row per window with the percentage used, time remaining, and exact reset date. The installer selects the legacy implementation for GNOME 42–44 and the ES module implementation for GNOME 45+.
+GNOME Shell is a first-class target, not an afterthought: the extension in [`gnome-extension/`](gnome-extension/) runs on the same Python backend as the Plasma widget and supports the same eleven providers, in a panel indicator and popover. Providers with multiple quota windows, such as Claude, show one row per window with the percentage used, time remaining, and exact reset date. Two implementations ship side by side — a legacy one for GNOME 42–44 and an ES module one for GNOME 45+ — the installer picks the right one automatically, and the release archives are published as a separate download per variant.
 
-Requirements: GNOME Shell 46+, GJS, GLib schemas, and Python 3.8+. Install it from this checkout with:
+Requirements: GNOME Shell 42+, GJS, GLib schemas, and Python 3.8+.
+
+### Install from a release (no clone, no `make`)
+
+Every tagged release attaches a ready-to-install archive. Pick the one matching your shell (`gnome-shell --version`) — `modern` for GNOME 45+, `legacy` for GNOME 42–44 — then run:
+
+```sh
+gnome-extensions install --force ai-usage@juanpsm-<version>-modern.shell-extension.zip
+gnome-extensions enable ai-usage@juanpsm
+```
+
+Log out and back in (or press <kbd>Alt</kbd>+<kbd>F2</kbd>, `r`, <kbd>Enter</kbd> on X11) to load it. The archive is self-contained: the Python backend ships inside it and nothing is downloaded at runtime. The only external dependency is a system `python3`, whose path you can override in the extension preferences.
+
+### Install from this checkout
 
 ```sh
 make gnome-install
 ```
 
-Then enable **AI Usage** from GNOME Extensions. Preferences are available from the extension's settings page.
+This picks the right variant for your running shell automatically.
+
+### Build the archives yourself
+
+```sh
+make gnome-pack
+```
+
+Writes both `.shell-extension.zip` files to the repository root. See [`gnome-extension/PUBLISHING.md`](gnome-extension/PUBLISHING.md) for the release flow and the checklist for submitting to extensions.gnome.org.
+
+Once installed, enable **AI Usage** from GNOME Extensions. Preferences are available from the extension's settings page.
 
 ---
 
@@ -81,7 +105,7 @@ Then enable **AI Usage** from GNOME Extensions. Preferences are available from t
 - **History export / import** — Save and restore usage history as JSON; history is also mirrored to disk so it survives reinstalls
 - **Stale indicator** — Dims if the last fetch failed, shows error inline
 - **Rate-limit backoff** — Respects `retry-after` headers, won't hammer the API
-- **Terminal frontend** — [`ai-usage-cli`](#terminal) prints the same data as a table, or a single status-bar line with `--compact`, on desktops without Plasma 6 and over SSH
+- **Terminal frontend** — [`ai-usage-cli`](#terminal) prints the same data as a table, or a single status-bar line with `--compact`, on desktops with no panel frontend and over SSH
 
 ---
 
@@ -224,9 +248,9 @@ settings are stored locally in
 ### Terminal
 
 `ai-usage-cli` renders the same provider data as a table, with no Plasma,
-Quickshell or compositor involved. It is the way to use this on a desktop the
-widget cannot be installed on — Plasma 5, GNOME, XFCE — as well as over SSH, in
-a shell prompt, or in a status bar.
+Quickshell or compositor involved. It is the way to use this on a desktop with
+no panel frontend of its own — Plasma 5, XFCE — as well as over SSH, in a shell
+prompt, or in a status bar.
 
 ```bash
 # From a cloned checkout: put the tools on PATH …
@@ -303,8 +327,9 @@ Claude needs no key — a local Claude Code login is enough. See
 
 ### Shared provider backend
 
-All three frontends — the Plasma widget, the Hyprland/Quickshell shell and the
-terminal frontend — get every provider value from one executable,
+All four frontends — the Plasma widget, the GNOME Shell extension, the
+Hyprland/Quickshell shell and the terminal frontend — get every provider value
+from one executable,
 `package/contents/tools/sh/get-ai-usage`.
 It owns credential discovery, provider API requests, response parsing, quota
 maths, reset timestamps and error/stale state, and returns a versioned,
