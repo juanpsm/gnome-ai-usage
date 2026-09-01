@@ -1,85 +1,84 @@
 <p align="center">
-  <img src="./readme/icon.svg?v=7" width="120" alt="Logo de AI Usage">
+  <img src="./readme/icon.svg?v=7" width="120" alt="AI Usage logo">
 </p>
 
 <h1 align="center">AI Usage</h1>
 
 <p align="center">
   <a href="LICENSE">
-    <img src="https://img.shields.io/badge/Licencia-MIT-yellow?style=for-the-badge" alt="Licencia: MIT" />
+    <img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" alt="License: MIT" />
   </a>
 </p>
 
-Extensión de GNOME Shell para ver de un vistazo cuánta cuota de uso te queda
-en varios servicios de IA (Claude, OpenAI/Codex, GitHub Copilot, Antigravity,
-etc.), sin tener que entrar a cada sitio web.
+A GNOME Shell extension to see at a glance how much usage quota you have left
+across several AI services (Claude, OpenAI/Codex, GitHub Copilot,
+Antigravity, etc.), without opening each site.
 
-Este proyecto es un fork de otro para KDE Plasma (ver [Créditos](#créditos)).
+This project is a fork of another one for KDE Plasma (see
+[Credits](#credits)).
 
 ---
 
-## Extensión de GNOME Shell
+## GNOME Shell extension
 
-Vive en [`gnome-extension/`](gnome-extension/). Es lo único de este repo que
-usamos y probamos activamente. Qué hace hoy, verificado:
+Lives in [`gnome-extension/`](gnome-extension/). It's the only part of this
+repo we actively use and test. What it does today, verified:
 
-- Indicador en el panel superior con el porcentaje de uso, y un popover con
-  una fila por proveedor habilitado.
-- Un punto de estado por fila: verde (ok), rojo (error) o ámbar (el último
-  refresco falló pero se muestra el dato anterior en caché).
-- Un medidor por cada ventana de cuota del proveedor (porcentaje, tiempo
-  restante, fecha exacta de reset).
-- Click en una fila abre la página de uso de ese proveedor en el navegador
-  (las URLs están verificadas contra la documentación real de cada uno, no
-  adivinadas).
-- Preferencias (botón de engranaje al pie del popover, o
-  `gnome-extensions prefs ai-usage@juanpsm`): habilitar/deshabilitar cada
-  proveedor, cargar credenciales con un link a dónde conseguir cada una,
-  intervalo de refresco, cuota de GitHub Copilot, ruta de Python, y qué
-  proveedor mostrar en el indicador del panel.
-- Desglose de costo por modelo y un total agregado, que solo aparece si
-  configurás una key con permisos de administración/organización (Claude
-  Admin API Key, OpenAI API Key de organización). Sin eso, el dato no existe
-  y no se muestra nada; no es un bug.
-- El token OAuth de Claude se renueva solo cuando está por vencer, en vez de
-  mostrar "token expired" hasta que abrís el CLI de Claude de nuevo.
+- A panel indicator with the usage percentage, and a popover with one row
+  per enabled provider.
+- A status dot per row: green (ok), red (error), or amber (the last refresh
+  failed but cached data is still shown).
+- A meter per quota window (percentage, time remaining, exact reset date).
+- Clicking a row opens that provider's usage page in the browser (the URLs
+  are checked against each provider's real docs, not guessed).
+- Preferences (gear button at the bottom of the popover, or
+  `gnome-extensions prefs ai-usage@juanpsm`): enable/disable each provider,
+  enter credentials with a link to where to get each one, refresh interval,
+  GitHub Copilot quota, Python path, and which provider to show in the panel
+  indicator.
+- Per-model cost breakdown and an aggregate total, which only shows up if
+  you configure a key with admin/organization permissions (Claude Admin API
+  Key, OpenAI organization API Key). Without that, there's simply no data to
+  show; it's not a bug.
+- Claude's OAuth token refreshes itself before it expires, instead of
+  showing "token expired" until you open the Claude CLI again.
 
-Lo que todavía no tiene: gráfico histórico de uso, burn-rate, comparación
-contra el período anterior, spark-lines, acento de color por tema, ni pines de
-proveedores. Esas son funciones del panel de Quickshell/Hyprland (ver abajo),
-que no están portadas a GNOME.
+What it doesn't have yet: usage history chart, burn-rate, comparison against
+the previous period, spark-lines, theme accent color, or provider pinning.
+Those are features of the Quickshell/Hyprland panel (see below) that haven't
+been ported to GNOME.
 
-Requisitos: GNOME Shell 42+, GJS, GLib schemas, y Python 3.8+. Instalación
-desde este checkout:
+Requirements: GNOME Shell 42+, GJS, GLib schemas, and Python 3.8+. Install
+from this checkout with:
 
 ```bash
 make gnome-install
 ```
 
-Después activá **AI Usage** desde GNOME Extensions.
+Then enable **AI Usage** from GNOME Extensions.
 
-También podés armar un `.shell-extension.zip` instalable (uno por variante,
-moderna y legacy) sin clonar el repo cada vez:
+You can also build an installable `.shell-extension.zip` (one per variant,
+modern and legacy) without cloning the repo every time:
 
 ```bash
 make gnome-pack
 ```
 
-Ver [`gnome-extension/PUBLISHING.md`](gnome-extension/PUBLISHING.md) para el
-detalle de qué incluye cada archivo y el checklist para subirlo a
+See [`gnome-extension/PUBLISHING.md`](gnome-extension/PUBLISHING.md) for
+what each archive includes and the checklist for uploading to
 extensions.gnome.org.
 
 ---
 
 ## Quickshell / Hyprland
 
-[`hyprland/`](hyprland/) trae el panel de Quickshell heredado del proyecto
-original, con más funciones que la extensión de GNOME en el papel (gráfico de
-historial, burn-rate, comparación de período, spark-lines, export/import de
-historial, colores de acento). No lo usamos ni lo probamos activamente en
-este fork: el código sigue ahí y en teoría funciona, pero no podemos
-garantizar que todo lo que promete el proyecto original siga andando tal
-cual. Si lo probás y encontrás algo roto, avisá.
+[`hyprland/`](hyprland/) carries the Quickshell panel inherited from the
+original project, with more features than the GNOME extension on paper
+(history chart, burn-rate, period comparison, spark-lines, history
+export/import, accent colors). We don't actively use or test this in this
+fork: the code is still there and should work, but we can't guarantee
+everything the original project promises still holds up as-is. If you try
+it and find something broken, let us know.
 
 ```bash
 nix run .#hyprland
@@ -89,15 +88,15 @@ nix run .#hyprland
 
 ## Terminal
 
-`ai-usage-cli` imprime los mismos datos en una tabla, sin necesitar GNOME
-Shell ni Quickshell: sirve para otros escritorios, por SSH, o en una barra de
-estado. Este sí tiene tests (`tests/ai-usage-cli.test.sh`).
+`ai-usage-cli` prints the same data as a table, with no need for GNOME
+Shell or Quickshell: it's for other desktops, over SSH, or in a status bar.
+This one does have tests (`tests/ai-usage-cli.test.sh`).
 
 ```bash
 export PATH="$PWD/package/contents/tools/sh:$PATH"
-ai-usage-cli                        # todos los proveedores habilitados
-ai-usage-cli --compact              # una línea, para barras de estado
-ai-usage-cli --provider claude,zai  # un subconjunto puntual
+ai-usage-cli                        # every enabled provider
+ai-usage-cli --compact              # one line, for status bars
+ai-usage-cli --provider claude,zai  # a specific subset
 ```
 
 ```
@@ -109,153 +108,152 @@ Claude    max           7-day window       [██████░░░░]  61%
 Copilot   —             —                  Copilot: no token configured
 ```
 
-Sin un frontend gráfico corriendo, la configuración se escribe a mano en
-`~/.config/ai-usage-widget/hyprland-settings.json` (o bajo `$XDG_CONFIG_HOME`;
-`AI_USAGE_CONFIG` cambia la ruta). Ver [Servicios soportados](#servicios-soportados)
-para lo que necesita cada uno.
+Without a graphical frontend running, configuration is written by hand at
+`~/.config/ai-usage-widget/hyprland-settings.json` (or under
+`$XDG_CONFIG_HOME`; `AI_USAGE_CONFIG` changes the path). See
+[Supported services](#supported-services) for what each one needs.
 
 ---
 
-## Servicios soportados
+## Supported services
 
-Esta tabla es la que ya traía el proyecto original: describe qué expone
-cada API, no qué tan probado está en este fork específico.
+This table is the one the original project already had: it describes what
+each API exposes, not how well-tested it is in this specific fork.
 
-| Servicio | Qué muestra | Estado |
+| Service | What it shows | Status |
 |---|---|---|
-| Claude (Anthropic) | Ventanas de suscripción, horarios de reset, estadísticas locales de actividad | Soportado |
-| Antigravity / Google AI Studio | Cuota general, uso por modelo de Gemini, horarios de reset | Soportado |
-| OpenAI | Uso de tokens/costo de API (30 días) + límites de plan Codex/ChatGPT y estado de cuenta | Soportado |
-| Grok (xAI) | Créditos de facturación de la CLI, agotamiento del tier gratuito, totales de sesión local | Tier gratuito probado; planes pagos sin verificar |
-| Kiro | Créditos mensuales, saldo restante, fecha de reset, excedente, plan inferido | Soportado |
-| Mistral AI | Estado de la key, modelos disponibles, estadísticas locales de costo/tokens de vibe CLI | Soportado |
-| OpenRouter | Gasto, límite de crédito, porcentaje de uso, etiqueta de cuenta | Sin probar |
-| Z.AI | Cuota de tokens de 5 horas, cuota mensual de herramientas, cuentas regresivas de reset, detalle por modelo | Sin probar |
-| GitHub Copilot | Uso mensual de premium requests contra una cuota configurable | Facturación personal soportada; org/enterprise todavía no |
-| DeepSeek | Saldo disponible con desglose de crédito otorgado/recargado | Sin probar |
-| Kimi / Moonshot AI | Saldo disponible con desglose de voucher/efectivo | Sin probar |
+| Claude (Anthropic) | Subscription windows, reset times, local activity stats | Supported |
+| Antigravity / Google AI Studio | Overall quota, per-model Gemini usage, reset times | Supported |
+| OpenAI | 30-day API token/cost usage + Codex/ChatGPT plan limits and account status | Supported |
+| Grok (xAI) | CLI billing credits, free-tier exhaustion, local session totals | Free tier tested; paid plans unverified |
+| Kiro | Monthly credits, remaining balance, reset date, overage, inferred plan | Supported |
+| Mistral AI | Key status, available models, local vibe CLI cost/token stats | Supported |
+| OpenRouter | Spend, credit limit, usage percentage, account label | Untested |
+| Z.AI | 5-hour token quota, monthly tools quota, reset countdowns, per-model detail | Untested |
+| GitHub Copilot | Monthly premium request usage against a configurable quota | Personal billing supported; org/enterprise not yet |
+| DeepSeek | Available balance with granted/topped-up breakdown | Untested |
+| Kimi / Moonshot AI | Available balance with voucher/cash breakdown | Untested |
 
-Las APIs de cada proveedor no exponen lo mismo: los límites de Codex/ChatGPT
-son independientes del uso de la API de OpenAI, DeepSeek reporta un saldo en
-vez de una ventana de uso, y el tier gratuito de Grok no expone uso progresivo
-antes de agotarse. Ver [Cómo funciona](#cómo-funciona) para el detalle de cada
-proveedor.
-
----
-
-## Requisitos
-
-| Dependencia | Notas |
-|---|---|
-| Python 3.8+ | Corre el backend compartido (solo librería estándar, sin `pip install`). Se autodetecta como `python3`, una versión con sufijo, o `python` a secas. Para fijar un intérprete específico, exportá `$PYTHON3` o configuralo en las preferencias de la extensión |
-
-Habilitá solo los servicios que uses. Cada uno necesita lo suyo:
-
-| Servicio | Qué necesitás |
-|---|---|
-| Claude | Claude Code, con sesión iniciada localmente |
-| Antigravity | Node.js 18+, la CLI `antigravity-usage` con `antigravity-usage login`, o la IDE de Antigravity abierta |
-| OpenAI | Una API key de OpenAI para el uso de organización; una sesión de Codex CLI da los límites de plan Codex/ChatGPT |
-| Grok | Grok CLI autenticado con `grok --oauth`; una API key de xAI es opcional |
-| Kiro | La IDE de Kiro, con sesión iniciada al menos una vez |
-| Mistral AI | Una API key de Mistral; vibe CLI es opcional y agrega estadísticas de sesión local |
-| OpenRouter | Una API key de OpenRouter cargada en las preferencias |
-| Z.AI | Un token de Z.AI en preferencias, `$ZAI_TOKEN`, o `~/.config/zai/token` |
-| GitHub Copilot | Un token de GitHub en preferencias, `$GITHUB_TOKEN`, o `~/.config/github-copilot/token`, con permiso fine-grained **Plan: read**; solo facturación personal |
-| DeepSeek | Una API key de DeepSeek en preferencias, `$DEEPSEEK_API_KEY`, o `~/.config/deepseek/api-key` |
-| Kimi / Moonshot AI | Una API key de Moonshot en preferencias, `$MOONSHOT_API_KEY`, `$KIMI_API_KEY`, o `~/.config/moonshot/api-key` |
+Provider APIs don't all expose the same thing: Codex/ChatGPT limits are
+independent from OpenAI API usage, DeepSeek reports a balance instead of a
+usage window, and Grok's free tier doesn't expose progressive usage before
+it's exhausted. See [How it works](#how-it-works) for the detail on each
+provider.
 
 ---
 
-## Cómo funciona
+## Requirements
 
-### Backend compartido
+| Dependency | Notes |
+|---|---|
+| Python 3.8+ | Runs the shared backend (standard library only, no `pip install`). Auto-detected as `python3`, a suffixed version, or bare `python`. To pin a specific interpreter, export `$PYTHON3` or set it in the extension's preferences |
 
-Las tres formas de usar esto (la extensión de GNOME, el panel de
-Quickshell/Hyprland y la terminal) obtienen todos los datos de un mismo
-ejecutable, `package/contents/tools/sh/get-ai-usage`. Se encarga de resolver
-credenciales, pegarle a la API de cada proveedor, parsear la respuesta,
-calcular porcentajes y horarios de reset, y devuelve un JSON versionado y
-neutral respecto al frontend:
+Enable only the services you use. Each one needs its own thing:
+
+| Service | What you need |
+|---|---|
+| Claude | Claude Code, signed in locally |
+| Antigravity | Node.js 18+, the `antigravity-usage` CLI with `antigravity-usage login`, or the Antigravity IDE open |
+| OpenAI | An OpenAI API key for organization usage; a Codex CLI session gives Codex/ChatGPT plan limits |
+| Grok | Grok CLI authenticated with `grok --oauth`; an xAI API key is optional |
+| Kiro | The Kiro IDE, signed in at least once |
+| Mistral AI | A Mistral API key; vibe CLI is optional and adds local session stats |
+| OpenRouter | An OpenRouter API key entered in preferences |
+| Z.AI | A Z.AI token in preferences, `$ZAI_TOKEN`, or `~/.config/zai/token` |
+| GitHub Copilot | A GitHub token in preferences, `$GITHUB_TOKEN`, or `~/.config/github-copilot/token`, with fine-grained **Plan: read** permission; personal billing only |
+| DeepSeek | A DeepSeek API key in preferences, `$DEEPSEEK_API_KEY`, or `~/.config/deepseek/api-key` |
+| Kimi / Moonshot AI | A Moonshot API key in preferences, `$MOONSHOT_API_KEY`, `$KIMI_API_KEY`, or `~/.config/moonshot/api-key` |
+
+---
+
+## How it works
+
+### Shared backend
+
+All three ways of using this (the GNOME extension, the Quickshell/Hyprland
+panel, and the terminal) get all their data from one executable,
+`package/contents/tools/sh/get-ai-usage`. It handles credential resolution,
+hitting each provider's API, parsing the response, computing percentages
+and reset times, and returns a versioned, frontend-neutral JSON:
 
 ```bash
-get-ai-usage --provider claude   # un proveedor puntual
-get-ai-usage --all               # todos los habilitados
+get-ai-usage --provider claude   # one specific provider
+get-ai-usage --all               # every enabled one
 ```
 
-El backend es un paquete de Python sin dependencias externas
-(`package/contents/tools/aiusage`); `get-ai-usage` es un lanzador de bash que
-lo ejecuta. La normalización es pura (sin efectos secundarios), así que
-`get-ai-usage --normalize` puede reproducir una respuesta grabada sin tocar la
-red; así corren los tests. El esquema completo está documentado en
+The backend is a Python package with no external dependencies
+(`package/contents/tools/aiusage`); `get-ai-usage` is a bash launcher that
+runs it. Normalization is pure (no side effects), so `get-ai-usage
+--normalize` can replay a recorded response without touching the network;
+that's how the tests run. The full schema is documented in
 [`docs/provider-contract.md`](docs/provider-contract.md).
 
-Ningún frontend hace pedidos de red, parsea una respuesta cruda, ni calcula un
-porcentaje: todo eso vive en el backend. La extensión de GNOME está escrita
-en GJS puro (sin QML); Quickshell usa QML y comparte lógica de formato de
-tiempo/historial vía `package/contents/code/` (`Format.js`, `UsageHistory.js`).
+No frontend makes network requests, parses a raw response, or computes a
+percentage: all of that lives in the backend. The GNOME extension is
+written in plain GJS (no QML); Quickshell uses QML and shares
+time/history-formatting logic via `package/contents/code/` (`Format.js`,
+`UsageHistory.js`).
 
 ### Claude
-En cada refresco, el backend lee `~/.claude/.credentials.json` para el token
-OAuth y llama al endpoint de uso de suscripción de Anthropic. Si el token está
-por vencer, lo renueva usando el refresh token sin tocar ese archivo (que es
-propiedad del CLI de `claude`), y cachea el resultado aparte. El endpoint y
-client id de renovación no están documentados oficialmente por Anthropic (son
-conocidos por ingeniería inversa de la comunidad); si algo falla, el
-comportamiento es simplemente el mensaje de error de siempre, nada se corrompe.
+On every refresh, the backend reads `~/.claude/.credentials.json` for the
+OAuth token and calls Anthropic's subscription usage endpoint. If the token
+is about to expire, it refreshes it using the refresh token without
+touching that file (which belongs to the `claude` CLI), and caches the
+result separately. The refresh endpoint and client id aren't officially
+documented by Anthropic (they're known from community reverse engineering);
+if anything fails, the behavior is just the usual error message, nothing
+gets corrupted.
 
 ### Antigravity
-Lee credenciales de la configuración de la CLI `antigravity-usage` (en
-`~/.config/antigravity-usage/`), o si no, prueba directamente contra un
-proceso de la IDE de Antigravity corriendo localmente. Cualquiera de las dos
-formas termina llamando a la API de Google Cloud Code para traer la cuota por
-modelo.
+Reads credentials from the `antigravity-usage` CLI config (in
+`~/.config/antigravity-usage/`), or otherwise probes directly against a
+locally running Antigravity IDE process. Either way it ends up calling the
+Google Cloud Code API for per-model quota.
 
 ### OpenAI
-Dos partes independientes: el uso de la API de organización (últimos 30 días,
-requiere una API key), y los límites del plan Codex/ChatGPT (vía el
-app-server local de Codex, con un fallback web autenticado).
+Two independent parts: organization API usage (last 30 days, needs an API
+key), and Codex/ChatGPT plan limits (via Codex's local app-server, with an
+authenticated web fallback).
 
-### Grok *(tier gratuito probado; planes pagos sin verificar)*
-Lee la sesión de la CLI de Grok desde `~/.grok/auth.json` y resume las
-sesiones locales de `~/.grok/sessions`. En el tier gratuito, la CLI solo
-informa el monto exacto agotado después de que la cuota se termina, así que no
-se puede mostrar avance progresivo antes de eso.
+### Grok *(free tier tested; paid plans unverified)*
+Reads the Grok CLI session from `~/.grok/auth.json` and summarizes local
+sessions from `~/.grok/sessions`. On the free tier, the CLI only reports the
+exact exhausted amount after the quota runs out, so progressive usage can't
+be shown before that.
 
 ### Kiro
-Lee el estado de uso cacheado localmente por Kiro
-(`~/.config/Kiro/User/globalStorage/state.vscdb`). No necesita API key.
+Reads the usage state Kiro caches locally
+(`~/.config/Kiro/User/globalStorage/state.vscdb`). No API key needed.
 
 ### Mistral AI
-Valida la key contra la API de Mistral y lista los modelos disponibles.
-Mistral no expone una API de facturación pública, así que el gasto sale de
-los logs locales de vibe CLI (`~/.vibe/logs/session/*/meta.json`) cuando está
-instalada.
+Validates the key against the Mistral API and lists available models.
+Mistral exposes no public billing API, so spend comes from local vibe CLI
+logs (`~/.vibe/logs/session/*/meta.json`) when it's installed.
 
-### OpenRouter *(sin probar)*
-Trae gasto y límite de crédito de la API de OpenRouter con la key configurada.
+### OpenRouter *(untested)*
+Fetches spend and credit limit from the OpenRouter API with the configured
+key.
 
-### Z.AI *(sin probar)*
-Llama al endpoint de cuota de Z.AI con el token configurado.
+### Z.AI *(untested)*
+Calls the Z.AI quota endpoint with the configured token.
 
 ### GitHub Copilot
-Lee el uso mensual de premium requests desde la API de facturación de GitHub.
-Necesita un token fine-grained con permiso **Plan: read**. Solo cubre
-facturación personal, no organización/enterprise todavía.
+Reads monthly premium request usage from GitHub's billing API. Needs a
+fine-grained token with **Plan: read** permission. Only covers personal
+billing, not organization/enterprise yet.
 
-### DeepSeek *(sin probar)*
-Llama a `GET https://api.deepseek.com/user/balance` con la key configurada.
+### DeepSeek *(untested)*
+Calls `GET https://api.deepseek.com/user/balance` with the configured key.
 
-### Kimi / Moonshot AI *(sin probar)*
-Llama a `GET https://api.moonshot.ai/v1/users/me/balance`. El sitio web de
-Moonshot redirige ahora a `platform.kimi.ai`, pero este endpoint de API no
-cambió.
+### Kimi / Moonshot AI *(untested)*
+Calls `GET https://api.moonshot.ai/v1/users/me/balance`. Moonshot's website
+now redirects to `platform.kimi.ai`, but this API endpoint hasn't changed.
 
-**Privacidad:** las credenciales que cargás quedan guardadas localmente en la
-configuración de la extensión (GSettings) y solo se envían al endpoint del
-proveedor correspondiente. El JSON que recibe cualquier frontend nunca incluye
-la credencial en sí, solo indicadores de presencia (`hasApiKey`, `keyValid`,
-…); un test de contrato lo verifica automáticamente.
+**Privacy:** credentials you enter stay stored locally in the extension's
+configuration (GSettings) and are only sent to the corresponding provider's
+endpoint. The JSON any frontend receives never includes the credential
+itself, only presence flags (`hasApiKey`, `keyValid`, …); a contract test
+verifies this automatically.
 
 ---
 
@@ -265,21 +263,21 @@ la credencial en sí, solo indicadores de presencia (`hasApiKey`, `keyValid`,
 make test
 ```
 
-`tests/get-ai-usage.test.sh` reproduce las fixtures de `tests/fixtures/` en
-modo `--normalize` (éxito, credenciales faltantes, respuestas mal formadas,
-offline, rate-limited) para cada proveedor, sin tocar la red.
-`tests/ai-usage-cli.test.sh` renderiza esas mismas fixtures con la terminal.
-`tests/gnome-extension.test.js` cubre las funciones puras de
-`gnome-extension/utils.js`. `tests/shared-code.test.js` cubre el JS que usa
-Quickshell (`Format.js`, `UsageHistory.js`).
+`tests/get-ai-usage.test.sh` replays the fixtures in `tests/fixtures/` in
+`--normalize` mode (success, missing credentials, malformed responses,
+offline, rate-limited) for every provider, without touching the network.
+`tests/ai-usage-cli.test.sh` renders those same fixtures through the
+terminal frontend. `tests/gnome-extension.test.js` covers the pure
+functions in `gnome-extension/utils.js`. `tests/shared-code.test.js` covers
+the JS Quickshell uses (`Format.js`, `UsageHistory.js`).
 
 ---
 
-## Créditos
+## Credits
 
-Este repo es un fork de
-[Muddyblack/kde-ai-usage](https://github.com/Muddyblack/kde-ai-usage), que
-hizo todo el trabajo original: el diseño del backend en Python, la
-integración con cada proveedor, y el widget de KDE Plasma del que partimos.
-Acá sacamos el widget de Plasma y construimos la extensión de GNOME Shell
-sobre ese mismo backend.
+This repo is a fork of
+[Muddyblack/kde-ai-usage](https://github.com/Muddyblack/kde-ai-usage),
+which did all the original work: the Python backend design, the
+integration with each provider, and the KDE Plasma widget we started from.
+Here we dropped the Plasma widget and built the GNOME Shell extension on
+top of that same backend.
