@@ -3,7 +3,7 @@
   "name": "AI Usage",
   "description": "Monitor AI provider quota usage from the GNOME Shell panel",
   "shell-version": ["45", "46", "47", "48", "49", "50"],
-  "version": 1,
+  "version": 2,
   "url": "https://github.com/juanpsm/gnome-ai-usage",
   "settings-schema": "org.gnome.shell.extensions.ai-usage"
 }
