@@ -25,14 +25,19 @@ jobs:
       - name: Build GNOME Shell extension archives
         run: make gnome-pack
 
-      - name: Get version and artifact path
+      - name: Get version and artifact paths
         id: info
         run: |
+          # Resolve the built files rather than rebuilding their names from the
+          # tag: pack derives the version from package/metadata.json, which only
+          # matches the tag when the release went through tag.sh.
+          set -eu
           VERSION="${GITHUB_REF_NAME#v}"
-          NAME="$(basename "$PWD")"
+          ARTIFACT="$(ls -1 ./*.plasmoid | head -1)"
+          GNOME_ARTIFACT="$(ls -1 ./*-modern.shell-extension.zip | head -1)"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "artifact=${NAME}-${VERSION}.plasmoid" >> "$GITHUB_OUTPUT"
-          echo "gnome_artifact=ai-usage@juanpsm-${VERSION}-modern.shell-extension.zip" >> "$GITHUB_OUTPUT"
+          echo "artifact=$(basename "$ARTIFACT")" >> "$GITHUB_OUTPUT"
+          echo "gnome_artifact=$(basename "$GNOME_ARTIFACT")" >> "$GITHUB_OUTPUT"
 
       - name: Generate release notes
         id: notes
@@ -71,5 +76,5 @@ jobs:
             ```
             Log out and back in (or press Alt+F2, `r`, Enter on X11) to load it.
           files: |
-            ${{ steps.info.outputs.artifact }}
+            *.plasmoid
             *.shell-extension.zip
