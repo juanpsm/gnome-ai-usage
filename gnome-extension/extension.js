@@ -12,6 +12,10 @@ import {formatReset, meterClass, providerPercent, PROVIDER_USAGE_URLS} from './u
 
 const PROVIDERS = ['claude', 'antigravity', 'openai', 'kiro', 'mistral', 'openrouter', 'grok', 'zai', 'copilot', 'deepseek', 'kimi'];
 
+// EGO review guidelines require external processes to be "spawned carefully
+// and exit cleanly" — this bounds how long a hung backend can block a refresh.
+const REFRESH_TIMEOUT_SECONDS = 30;
+
 const METER_COLORS = {
     '': [0.384, 0.627, 0.918],
     warning: [0.898, 0.647, 0.039],
@@ -147,12 +151,19 @@ export default class AiUsageExtension extends Extension {
         if (this._refreshId)
             GLib.Source.remove(this._refreshId);
         this._refreshId = 0;
+        if (this._refreshTimeoutId)
+            GLib.Source.remove(this._refreshTimeoutId);
+        this._refreshTimeoutId = 0;
+        this._refreshCancellable?.cancel();
+        this._refreshCancellable = null;
         if (this._settingsChangedId)
             this._settings.disconnect(this._settingsChangedId);
         if (this._indicatorModeChangedId)
             this._settings.disconnect(this._indicatorModeChangedId);
         this._indicator?.destroy();
         this._indicator = null;
+        this._settings = null;
+        this._providers = null;
     }
 
     _refresh() {
@@ -186,7 +197,27 @@ export default class AiUsageExtension extends Extension {
             this._renderError(error.message);
             return;
         }
-        proc.communicate_utf8_async(null, null, (_proc, result) => {
+
+        this._refreshCancellable?.cancel();
+        const cancellable = new Gio.Cancellable();
+        this._refreshCancellable = cancellable;
+        if (this._refreshTimeoutId)
+            GLib.Source.remove(this._refreshTimeoutId);
+        this._refreshTimeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, REFRESH_TIMEOUT_SECONDS, () => {
+            this._refreshTimeoutId = 0;
+            cancellable.cancel();
+            return GLib.SOURCE_REMOVE;
+        });
+
+        proc.communicate_utf8_async(null, cancellable, (_proc, result) => {
+            if (this._refreshTimeoutId) {
+                GLib.Source.remove(this._refreshTimeoutId);
+                this._refreshTimeoutId = 0;
+            }
+            if (this._refreshCancellable === cancellable)
+                this._refreshCancellable = null;
+            if (!this._indicator)
+                return;
             try {
                 const [, stdout, stderr] = proc.communicate_utf8_finish(result);
                 const envelope = stdout ? JSON.parse(stdout) : null;
@@ -194,7 +225,10 @@ export default class AiUsageExtension extends Extension {
                     throw new Error(stderr ? stderr.trim() : 'respuesta vacía del backend');
                 this._render(envelope);
             } catch (error) {
-                this._renderError(error.message);
+                if (error.matches?.(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED))
+                    this._renderError('el backend no respondió a tiempo');
+                else
+                    this._renderError(error.message);
             }
         });
     }

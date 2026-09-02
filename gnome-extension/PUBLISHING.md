@@ -45,6 +45,17 @@ Before uploading, check:
   the extension spawns `backend/sh/get-ai-usage`, which `exec`s the system
   `python3` on the bundled `aiusage` package. Nothing is written outside the
   extension directory and no code is evaluated at runtime.
+- **Processes are spawned carefully and exit cleanly**, per the review
+  guideline on external scripts: the spawn has a 30-second bounded timeout
+  (`REFRESH_TIMEOUT_SECONDS` in `extension.js`) that cancels the subprocess
+  if the backend hangs, and `disable()` cancels any in-flight refresh instead
+  of leaving it to call back into a destroyed indicator. One provider raising
+  an unexpected exception can't crash the whole backend process either — it
+  degrades to an error entry for that provider while the rest of the envelope
+  still comes back (`envelope.py`'s `fetch_one`).
 - **`python3` is a runtime dependency** not expressible in `metadata.json`.
   Mention it in the EGO description; the path is user-overridable in the
   extension preferences.
+- **The MIT `LICENSE` is bundled** into both archives (`stage.sh` copies it
+  from the repo root), satisfying EGO's requirement for an OSI-approved
+  license inside the upload.
