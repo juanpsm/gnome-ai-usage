@@ -156,6 +156,10 @@ export default class AiUsageExtension extends Extension {
         this._refreshTimeoutId = 0;
         this._refreshCancellable?.cancel();
         this._refreshCancellable = null;
+        // Cancelling only abandons the I/O wait — force the backend process
+        // itself to exit instead of leaving it running as an orphan.
+        this._refreshProc?.force_exit();
+        this._refreshProc = null;
         if (this._settingsChangedId)
             this._settings.disconnect(this._settingsChangedId);
         if (this._indicatorModeChangedId)
@@ -199,13 +203,18 @@ export default class AiUsageExtension extends Extension {
         }
 
         this._refreshCancellable?.cancel();
+        this._refreshProc?.force_exit();
         const cancellable = new Gio.Cancellable();
         this._refreshCancellable = cancellable;
+        this._refreshProc = proc;
         if (this._refreshTimeoutId)
             GLib.Source.remove(this._refreshTimeoutId);
         this._refreshTimeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, REFRESH_TIMEOUT_SECONDS, () => {
             this._refreshTimeoutId = 0;
             cancellable.cancel();
+            // Cancelling only abandons the I/O wait — the backend process
+            // itself keeps running unless told to exit.
+            proc.force_exit();
             return GLib.SOURCE_REMOVE;
         });
 
@@ -216,6 +225,8 @@ export default class AiUsageExtension extends Extension {
             }
             if (this._refreshCancellable === cancellable)
                 this._refreshCancellable = null;
+            if (this._refreshProc === proc)
+                this._refreshProc = null;
             if (!this._indicator)
                 return;
             try {
