@@ -25,7 +25,25 @@ def build(selected, now=None):
         now = time.time()
 
     def fetch_one(id_):
-        return normalize(collect(id_, now))
+        try:
+            return normalize(collect(id_, now))
+        except Exception as exc:  # noqa: BLE001 - one provider's bug must not take down the rest
+            return {
+                "id": id_,
+                "label": id_,
+                "accent": "#888888",
+                "icon": "",
+                "ok": False,
+                "stale": True,
+                "error": str(exc),
+                "updatedAt": int(now),
+                "summary": {"pct": 0, "text": "unavailable", "detail": str(exc), "hasChart": False},
+                "quotaWindows": [],
+                "chartWindows": [],
+                "slots": [],
+                "historyValues": {},
+                "details": {},
+            }
 
     if selected:
         with ThreadPoolExecutor(max_workers=len(selected)) as pool:
