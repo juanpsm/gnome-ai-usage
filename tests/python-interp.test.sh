@@ -11,7 +11,11 @@ set -euo pipefail
 
 repo="$(cd "$(dirname "$0")/.." && pwd)"
 sh_dir="$repo/package/contents/tools/sh"
-real_py="$(command -v python3)"
+# `command -v python3` can be a version-manager shim (asdf, pyenv): a wrapper
+# script that re-execs through more tooling on PATH. Symlinking that into the
+# stripped-down PATHs below would fail for reasons unrelated to py_resolve, so
+# resolve to the real interpreter binary first when possible.
+real_py="$(python3 -c 'import sys; print(sys.executable)' 2>/dev/null || command -v python3)"
 bash_bin="$(command -v bash)"
 
 tmp="$(mktemp -d)"
