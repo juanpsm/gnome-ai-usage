@@ -8,7 +8,7 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
-import {formatReset, meterClass, providerPercent, PROVIDER_USAGE_URLS} from './utils.js';
+import {formatReset, meterClass, providerPercent, schemeStyleClass, meterTrackRGBA, PROVIDER_USAGE_URLS} from './utils.js';
 
 const PROVIDERS = ['claude', 'antigravity', 'openai', 'kiro', 'mistral', 'openrouter', 'grok', 'zai', 'copilot', 'deepseek', 'kimi'];
 
@@ -25,10 +25,17 @@ const METER_COLORS = {
 // St exposes no level-bar widget, so the meter is drawn by hand on a Cairo
 // surface, mirroring the legacy variant. (St.LevelBar does not exist — using
 // it throws "LevelBar is not a constructor" on every GNOME 45+ session.)
+// Whether the shell is currently drawing its dark stylesheet, which is what
+// every color in stylesheet.css keys off (see its header comment).
+function preferDark() {
+    return St.Settings.get().color_scheme === St.SystemColorScheme.PREFER_DARK;
+}
+
 function paintMeter(area, pct) {
     const [width, height] = area.get_surface_size();
     const cr = area.get_context();
-    cr.setSourceRGBA(1, 1, 1, 0.18);
+    const track = meterTrackRGBA(preferDark());
+    cr.setSourceRGBA(track[0], track[1], track[2], track[3]);
     cr.rectangle(0, 0, width, height);
     cr.fill();
 
@@ -144,6 +151,14 @@ export default class AiUsageExtension extends Extension {
             return GLib.SOURCE_CONTINUE;
         });
         Main.panel.addToStatusArea('ai-usage', this._indicator);
+        this._applyColorScheme();
+        // Following the scheme live matters more here than elsewhere: the
+        // GNOME 46 night-light/appearance switch flips it under a running
+        // session, and a stale class would leave the popup unreadable.
+        this._colorSchemeChangedId = St.Settings.get().connect('notify::color-scheme', () => {
+            this._applyColorScheme();
+            this._render(this._lastEnvelope);
+        });
         this._refresh();
     }
 
@@ -164,6 +179,9 @@ export default class AiUsageExtension extends Extension {
             this._settings.disconnect(this._settingsChangedId);
         if (this._indicatorModeChangedId)
             this._settings.disconnect(this._indicatorModeChangedId);
+        if (this._colorSchemeChangedId)
+            St.Settings.get().disconnect(this._colorSchemeChangedId);
+        this._colorSchemeChangedId = 0;
         this._indicator?.destroy();
         this._indicator = null;
         this._settings = null;
@@ -242,6 +260,15 @@ export default class AiUsageExtension extends Extension {
                     this._renderError(error.message);
             }
         });
+    }
+
+    _applyColorScheme() {
+        const box = this._indicator?.menu?.box;
+        if (!box)
+            return;
+        box.remove_style_class_name('ai-usage-dark');
+        box.remove_style_class_name('ai-usage-light');
+        box.add_style_class_name(schemeStyleClass(preferDark()));
     }
 
     _render(envelope) {

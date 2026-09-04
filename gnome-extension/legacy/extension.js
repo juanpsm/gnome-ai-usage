@@ -168,6 +168,12 @@ var AiUsageExtension = class {
             this._refresh();
             return true;
         }.bind(this));
+        // stylesheet.css keys its colors off a color-scheme class on the menu
+        // box (see its header). GNOME 42-44 ships no light shell stylesheet —
+        // its popup menus are dark whatever the desktop preference says — so
+        // this variant pins the dark half; only the modern one follows
+        // St.Settings.color_scheme.
+        this._indicator.menu.box.add_style_class_name('ai-usage-dark');
         Main.panel.addToStatusArea('ai-usage', this._indicator);
         this._refresh();
     }

@@ -1,7 +1,11 @@
+/* Color schemes: see the header comment in ../stylesheet.css — extension.js
+   tags the menu box with .ai-usage-light / .ai-usage-dark and every
+   theme-dependent color is declared once per scheme. */
 .ai-usage-menu-item { padding: 8px 0; }
 .ai-usage-provider { min-width: 330px; }
 .ai-usage-provider-name { font-weight: bold; }
-.ai-usage-status, .ai-usage-reset { color: #9a9996; }
+.ai-usage-dark .ai-usage-status, .ai-usage-dark .ai-usage-reset { color: #9a9996; }
+.ai-usage-light .ai-usage-status, .ai-usage-light .ai-usage-reset { color: #6f6f6c; }
 .ai-usage-status-dot {
     width: 8px;
     height: 8px;
@@ -23,10 +27,15 @@
     background-color: #f4a460;
     box-shadow: 0 0 6px 2px rgba(244, 164, 96, 0.65);
 }
-.ai-usage-provider-clickable:hover, .ai-usage-provider-clickable:focus { background-color: rgba(255, 255, 255, 0.06); }
-.ai-usage-model-row { font-size: 0.82em; color: #9a9996; padding-left: 4px; }
+.ai-usage-dark .ai-usage-provider-clickable:hover, .ai-usage-dark .ai-usage-provider-clickable:focus { background-color: rgba(255, 255, 255, 0.06); }
+.ai-usage-light .ai-usage-provider-clickable:hover, .ai-usage-light .ai-usage-provider-clickable:focus { background-color: rgba(40, 40, 40, 0.06); }
+.ai-usage-model-row { font-size: 0.82em; padding-left: 4px; }
+.ai-usage-dark .ai-usage-model-row { color: #9a9996; }
+.ai-usage-light .ai-usage-model-row { color: #6f6f6c; }
 .ai-usage-cost-footer-item { padding: 4px 16px 6px 16px; }
-.ai-usage-cost-footer { font-size: 0.88em; font-weight: bold; color: #cccccc; text-align: right; }
+.ai-usage-cost-footer { font-size: 0.88em; font-weight: bold; text-align: right; }
+.ai-usage-dark .ai-usage-cost-footer { color: #cccccc; }
+.ai-usage-light .ai-usage-cost-footer { color: #4a4a4a; }
 .ai-usage-window-label { font-size: 0.9em; }
 .ai-usage-window-value { font-weight: bold; }
 .ai-usage-reset { font-size: 0.8em; margin-top: 6px; margin-bottom: 4px; }
@@ -48,7 +57,10 @@
     border-radius: 999px;
     margin-left: 6px;
     padding: 0;
-    color: rgba(255, 255, 255, 0.8);
 }
-.ai-usage-icon-button:hover, .ai-usage-icon-button:focus { background-color: rgba(255, 255, 255, 0.12); color: #ffffff; }
-.ai-usage-icon-button:active { background-color: rgba(255, 255, 255, 0.2); }
+.ai-usage-dark .ai-usage-icon-button { color: rgba(255, 255, 255, 0.8); }
+.ai-usage-light .ai-usage-icon-button { color: rgba(40, 40, 40, 0.8); }
+.ai-usage-dark .ai-usage-icon-button:hover, .ai-usage-dark .ai-usage-icon-button:focus { background-color: rgba(255, 255, 255, 0.12); color: #ffffff; }
+.ai-usage-light .ai-usage-icon-button:hover, .ai-usage-light .ai-usage-icon-button:focus { background-color: rgba(40, 40, 40, 0.12); color: #282828; }
+.ai-usage-dark .ai-usage-icon-button:active { background-color: rgba(255, 255, 255, 0.2); }
+.ai-usage-light .ai-usage-icon-button:active { background-color: rgba(40, 40, 40, 0.2); }
