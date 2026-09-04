@@ -70,3 +70,18 @@ export const PROVIDER_KEY_HELP_URLS = {
     kimi: 'https://platform.kimi.ai/console/api-keys',
     // claude, antigravity, kiro: no pasted key — nothing to link here.
 };
+
+// GNOME Shell 42+ swaps between its light and dark stylesheet based on
+// org.gnome.desktop.interface color-scheme, and our popup has to follow it or
+// half the labels go white-on-white. St CSS has neither variables nor media
+// queries, so the scheme becomes a class on the menu box that stylesheet.css
+// keys every theme-dependent color off — see its header comment.
+export function schemeStyleClass(preferDark) {
+    return preferDark ? 'ai-usage-dark' : 'ai-usage-light';
+}
+
+// The meter track is Cairo-painted rather than styled, so unlike everything
+// else its per-scheme color can't live in the stylesheet.
+export function meterTrackRGBA(preferDark) {
+    return preferDark ? [1, 1, 1, 0.18] : [0.16, 0.16, 0.16, 0.18];
+}

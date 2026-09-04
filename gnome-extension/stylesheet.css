@@ -1,3 +1,15 @@
+/* ─ Color schemes ─
+   GNOME Shell 42+ loads gnome-shell-light.css or gnome-shell-dark.css from
+   org.gnome.desktop.interface color-scheme, and popup menus follow it: text
+   is #282828 on light, #ffffff on dark. St CSS has no variables and no media
+   queries, so extension.js puts .ai-usage-light / .ai-usage-dark on the menu
+   box (from St.Settings.color_scheme) and every theme-dependent color below
+   is declared once per scheme. Never hardcode a bare white/black here — it
+   goes invisible in the other scheme. tests/gnome-stylesheet.test.js enforces
+   both halves being present. Primary text (provider name, quota percentage)
+   deliberately sets no color at all: it inherits .popup-menu's, which the
+   shell theme already gets right. */
+
 /* ─ Provider Container — flat, no card border ─ */
 .ai-usage-provider {
     min-width: 360px;
@@ -11,7 +23,14 @@
 
 .ai-usage-status {
     font-size: 0.88em;
+}
+
+.ai-usage-dark .ai-usage-status {
     color: rgba(255, 255, 255, 0.55);
+}
+
+.ai-usage-light .ai-usage-status {
+    color: rgba(40, 40, 40, 0.55);
 }
 
 /* ─ "Connected" indicator — a glowing green dot instead of text ─ */
@@ -41,16 +60,30 @@
 }
 
 /* ─ Clicking a provider row opens its usage page ─ */
-.ai-usage-provider-clickable:hover,
-.ai-usage-provider-clickable:focus {
+.ai-usage-dark .ai-usage-provider-clickable:hover,
+.ai-usage-dark .ai-usage-provider-clickable:focus {
     background-color: rgba(255, 255, 255, 0.06);
+}
+
+.ai-usage-light .ai-usage-provider-clickable:hover,
+.ai-usage-light .ai-usage-provider-clickable:focus {
+    background-color: rgba(40, 40, 40, 0.06);
 }
 
 /* ─ Per-model cost breakdown rows ─ */
 .ai-usage-model-row {
     font-size: 0.82em;
-    color: rgba(255, 255, 255, 0.45);
     padding-left: 4px;
+}
+
+.ai-usage-dark .ai-usage-model-row {
+    color: rgba(255, 255, 255, 0.45);
+}
+
+.ai-usage-light .ai-usage-model-row {
+    /* 0.6 rather than the dark side's 0.45: on whitesmoke that alpha
+       lands at 2.6:1, too faint for 0.82em text. */
+    color: rgba(40, 40, 40, 0.6);
 }
 
 /* ─ Cost aggregation footer ─ */
@@ -61,8 +94,15 @@
 .ai-usage-cost-footer {
     font-size: 0.88em;
     font-weight: bold;
-    color: rgba(255, 255, 255, 0.75);
     text-align: right;
+}
+
+.ai-usage-dark .ai-usage-cost-footer {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.ai-usage-light .ai-usage-cost-footer {
+    color: rgba(40, 40, 40, 0.75);
 }
 
 /* ─ Quota row label + percentage ─ */
@@ -72,7 +112,14 @@
 
 .ai-usage-window-label {
     font-size: 0.92em;
+}
+
+.ai-usage-dark .ai-usage-window-label {
     color: rgba(255, 255, 255, 0.85);
+}
+
+.ai-usage-light .ai-usage-window-label {
+    color: rgba(40, 40, 40, 0.85);
 }
 
 .ai-usage-window-value {
@@ -83,12 +130,23 @@
 /* ─ Reset Countdown ─ */
 .ai-usage-reset {
     font-size: 0.82em;
-    color: rgba(255, 255, 255, 0.45);
     margin-bottom: 4px;
 }
 
+.ai-usage-dark .ai-usage-reset {
+    color: rgba(255, 255, 255, 0.45);
+}
+
+.ai-usage-light .ai-usage-reset {
+    /* 0.6 rather than the dark side's 0.45: on whitesmoke that alpha
+       lands at 2.6:1, too faint for 0.82em text. */
+    color: rgba(40, 40, 40, 0.6);
+}
+
 /* ─ Usage bar — hand-drawn on a DrawingArea (St has no level-bar widget),
-   so height needs to be explicit here instead of coming from the widget. ─ */
+   so height needs to be explicit here instead of coming from the widget.
+   Its track color is per-scheme too, but lives in utils.js/meterTrackRGBA
+   because Cairo paints it, not the stylesheet. ─ */
 .ai-usage-meter {
     height: 7px;
     border-radius: 4px;
@@ -128,15 +186,32 @@
     border-radius: 999px;
     margin-left: 6px;
     padding: 0;
+}
+
+.ai-usage-dark .ai-usage-icon-button {
     color: rgba(255, 255, 255, 0.8);
 }
 
-.ai-usage-icon-button:hover,
-.ai-usage-icon-button:focus {
+.ai-usage-light .ai-usage-icon-button {
+    color: rgba(40, 40, 40, 0.8);
+}
+
+.ai-usage-dark .ai-usage-icon-button:hover,
+.ai-usage-dark .ai-usage-icon-button:focus {
     background-color: rgba(255, 255, 255, 0.12);
     color: #ffffff;
 }
 
-.ai-usage-icon-button:active {
+.ai-usage-light .ai-usage-icon-button:hover,
+.ai-usage-light .ai-usage-icon-button:focus {
+    background-color: rgba(40, 40, 40, 0.12);
+    color: #282828;
+}
+
+.ai-usage-dark .ai-usage-icon-button:active {
     background-color: rgba(255, 255, 255, 0.2);
+}
+
+.ai-usage-light .ai-usage-icon-button:active {
+    background-color: rgba(40, 40, 40, 0.2);
 }

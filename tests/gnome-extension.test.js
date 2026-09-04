@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {formatReset, meterClass, providerPercent, PROVIDER_USAGE_URLS, PROVIDER_KEY_HELP_URLS} from '../gnome-extension/utils.js';
+import {formatReset, meterClass, providerPercent, schemeStyleClass, meterTrackRGBA, PROVIDER_USAGE_URLS, PROVIDER_KEY_HELP_URLS} from '../gnome-extension/utils.js';
 
 // gnome-extension/utils.js is plain ESM with no GJS-specific imports, unlike
 // package/contents/code/Format.js and UsageHistory.js (which stay dual
@@ -40,4 +40,20 @@ test('every known provider has a deliberate usage-URL and key-help entry', () =>
         if (!keyHelpSkips.has(id))
             assert.match(PROVIDER_KEY_HELP_URLS[id] || '', /^https:\/\//, `${id} should have a key-help URL`);
     }
+});
+
+test('maps the shell color scheme to the class stylesheet.css keys its colors off', () => {
+    assert.equal(schemeStyleClass(true), 'ai-usage-dark');
+    // Anything that is not an explicit dark preference — including
+    // color-scheme "default" — draws the light shell stylesheet on GNOME 46,
+    // where white text would be invisible.
+    assert.equal(schemeStyleClass(false), 'ai-usage-light');
+});
+
+test('the Cairo-painted meter track stays visible in both schemes', () => {
+    const [dr, , , da] = meterTrackRGBA(true);
+    const [lr, , , la] = meterTrackRGBA(false);
+    assert.ok(dr > 0.5, 'dark scheme needs a light track');
+    assert.ok(lr < 0.5, 'light scheme needs a dark track');
+    assert.ok(da > 0 && la > 0, 'a fully transparent track is no track');
 });
